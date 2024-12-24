@@ -30,3 +30,13 @@
 *.exe
 *.out
 *.app
+
+# Mangakon Executable
+./mangakon
+
+# dev_dir
+./devdir/
+
+./tools/
+
+err.txt
