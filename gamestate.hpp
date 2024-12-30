@@ -13,6 +13,11 @@ public:
         m_parent = m_ownsParent ? m_nc->get_stdplane() : parent;
     }
 
+    ~GameState() {
+        if (m_ownsParent)
+            delete m_parent;
+    }
+
 protected:
     ncpp::NotCurses *m_nc;
     ncpp::Plane *m_parent;

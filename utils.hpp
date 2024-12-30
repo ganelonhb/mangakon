@@ -45,6 +45,12 @@ namespace util {
             constexpr int RIGHT = -3;
         }
     }
+
+    namespace colors {
+        namespace defaults {
+            constexpr int SELECTED = 0xE68A00;
+        }
+    }
 }
 
 #endif

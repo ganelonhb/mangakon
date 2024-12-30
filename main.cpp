@@ -24,9 +24,11 @@ int main() {
 	notcurses_options ncopts{};
     ncopts.flags = NCOPTION_INHIBIT_SETLOCALE; // | NCOPTION_NO_ALTERNATE_SCREEN;
     ncpp::NotCurses nc(ncopts);
+    nc.mouse_enable(NCMICE_ALL_EVENTS);
 
 	ApiKeyGameState gs(&nc, nullptr);
-    NCLineEdit l(&nc);
+    NCLineEdit l(&nc, nullptr, 0, 0, 1, 45);
+    l.set_title(L"API Key");
 
     std::atomic<bool> gameover = false;
     // io loop (gets its own thread)
@@ -39,6 +41,11 @@ int main() {
             if (ch == 'q' and !l.focused()) {
                 gameover = true;
                 return;
+            }
+
+            if (ni.y > -1 and ni.x > -1 and ch == NCKEY_BUTTON1) { // Process mouse click
+                l.handle_click(ni.y, ni.x);
+                continue;
             }
 
             if (ni.evtype == ncpp::EvType::Release)
@@ -57,6 +64,18 @@ int main() {
                     l.putch(ch);
                 }
 
+                if (ch == NCKEY_RIGHT)
+                    l.right();
+
+                if (ch == NCKEY_LEFT)
+                    l.left();
+
+                if (ch == NCKEY_DEL)
+                    l.del();
+
+                if (ch == 0x1B)
+                    l.esc();
+
                 ncmtx.unlock();
             }
         }
@@ -71,9 +90,11 @@ int main() {
             break;
         std::chrono::time_point<std::chrono::high_resolution_clock> frameStart = std::chrono::high_resolution_clock::now();
 
+        ncmtx.lock();
         l.update();
 		gs.update();
         nc.render();
+        ncmtx.unlock();
 
         std::chrono::time_point<std::chrono::high_resolution_clock> frameEnd = std::chrono::high_resolution_clock::now();
         std::chrono::milliseconds elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(frameEnd - frameStart);
@@ -85,6 +106,7 @@ int main() {
 
     listen.join();
 
-
-	return nc.stop() ? 0 : -1;
+    nc.mouse_disable();
+    int EXIT_CODE = nc.stop() ? 0 : -1;
+	return EXIT_CODE;
 }
