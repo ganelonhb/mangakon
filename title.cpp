@@ -14,23 +14,23 @@ Title::Title(ncpp::NotCurses *nc, ncpp::Plane *parent, uint32_t y, uint32_t x)
     uint32_t true_x = x;
 
     if (true_y == -1)
-        true_y = (m_parenth / 2) - (MANGAKON_JP_ROWS / 2);
+        true_y = (m_parenth / 2) - (MANGAKON_TITLE_ROWS / 2);
     else if (true_y == -2)
         true_y = 0;
     else if (true_y == -3)
-        true_y = m_parenth - MANGAKON_JP_ROWS;
+        true_y = m_parenth - MANGAKON_TITLE_ROWS;
 
     if (true_x == -1) [[likely]]
-        true_x = (m_parentw / 2) - (MANGAKON_JP_COLS / 2);
+        true_x = (m_parentw / 2) - (MANGAKON_TITLE_COLS / 2);
     else if (true_x == -2)
         true_x = 0;
     else if (true_x == -3)
-        true_x = m_parentw - MANGAKON_JP_COLS;
+        true_x = m_parentw - MANGAKON_TITLE_COLS;
 
-    m_title = new ncpp::Plane(m_parent, MANGAKON_JP_ROWS, MANGAKON_JP_COLS, true_y, true_x);
+    m_title = new ncpp::Plane(m_parent, MANGAKON_TITLE_ROWS, MANGAKON_TITLE_COLS, true_y, true_x);
 
-    for (int i = 0; i < MANGAKON_JP_ROWS; ++i)
-        m_title->putstr(i, 0, MANGAKON_JP[i]);
+    for (int i = 0; i < MANGAKON_TITLE_ROWS; ++i)
+        m_title->putstr(i, 0, MANGAKON_TITLE[i]);
 }
 
 Title::~Title() {
@@ -62,7 +62,7 @@ uint32_t Title::w() const {
 
 void Title::update() {
     uint32_t y, x;
-    m_parent->get_dim(y, x);
+    m_parent->get_dim(&y, &x);
 
     m_parenth = y;
     m_parentw = x;
@@ -71,18 +71,18 @@ void Title::update() {
     uint32_t true_x = m_xpos;
 
     if (true_y == -1)
-        true_y = (m_parenth / 2) - (MANGAKON_JP_ROWS / 2);
+        true_y = (m_parenth / 2) - (MANGAKON_TITLE_ROWS / 2);
     else if (true_y == -2)
         true_y = 0;
     else if (true_y == -3)
-        true_y = m_parenth - MANGAKON_JP_ROWS;
+        true_y = m_parenth - MANGAKON_TITLE_ROWS;
 
     if (true_x == -1) [[likely]]
-        true_x = (m_parentw / 2) - (MANGAKON_JP_COLS / 2);
+        true_x = (m_parentw / 2) - (MANGAKON_TITLE_COLS / 2);
     else if (true_x == -2)
         true_x = 0;
     else if (true_x == -3)
-        true_x = m_parentw - MANGAKON_JP_COLS;
+        true_x = m_parentw - MANGAKON_TITLE_COLS;
 
     m_title->move(true_y, true_x);
 }

@@ -18,6 +18,11 @@ public:
             delete m_parent;
     }
 
+
+    virtual void update() {}
+    virtual void handle_event(ncinput &ni) {}
+    virtual bool block_fortype() { return false; }
+
 protected:
     ncpp::NotCurses *m_nc;
     ncpp::Plane *m_parent;

@@ -12,10 +12,10 @@ public:
         m_parent = static_cast<bool>(parent) ? parent : m_nc->get_stdplane();
     }
 
-    virtual void update() = 0;
-    virtual void handle_click(unsigned y, unsigned x) = 0;
+    virtual void update() {};
+    virtual void handle_click(unsigned y, unsigned x) {};
 
-    virtual bool focused() const = 0;
+    virtual bool focused() const { return false; };
 
 
 

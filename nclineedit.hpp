@@ -14,7 +14,7 @@
 
 constexpr int DEFAULT_SELECTED = util::colors::defaults::SELECTED;
 
-class NCLineEdit : protected FocusWidget {
+class NCLineEdit : public FocusWidget {
 public:
     explicit NCLineEdit(ncpp::NotCurses *nc, ncpp::Plane *parent = nullptr, uint32_t y = 0, uint32_t x = 0, uint32_t h = 1, uint32_t w = 10, bool isDefault = false, std::wstring title = L"", std::mutex *mut = nullptr)
     : FocusWidget{nc, parent}
@@ -24,9 +24,10 @@ public:
     , m_w{w}
     , m_cursor_pos{0}
     , m_scroll_offset{0}
-    , m_focused{false}
+    , m_focused{isDefault}
     , m_frame{0u}
     , clicked{mut}
+    , m_title{title}
     {
         m_lineEdit = new ncpp::Plane(m_parent, m_h + 2,m_w + 2,m_y,m_x);
     }
@@ -63,21 +64,28 @@ public:
         m_lineEdit->erase();
         m_lineEdit->set_fg_default();
 
-        if (m_focused)
+        if (m_focused) {
             m_lineEdit->set_bg_rgb(DEFAULT_SELECTED);
-        else
-            m_lineEdit->set_bg_default();
+            m_lineEdit->set_bg_alpha(0xFF);
+        }
+        else {
+            m_lineEdit->set_bg_rgb(m_parent->get_bg_rgb());
+            m_lineEdit->set_bg_alpha(0x00);
+        }
 
         uint64_t channels = 0;
 
+        m_lineEdit->cursor_move(1,1);
+        for(size_t i = 0; i < m_w; ++i)
+            m_lineEdit->putwch(L' ');
+        m_lineEdit->cursor_move(0,0);
+
         if (m_focused) {
-            m_lineEdit->cursor_move(1,1);
-            for(size_t i = 0; i < m_w; ++i)
-                m_lineEdit->putwch(L' ');
-            m_lineEdit->cursor_move(0,0);
             ncchannels_set_bg_rgb(&channels, DEFAULT_SELECTED);
+            ncchannels_set_bg_alpha(&channels, 0xFF);
         }
         else {
+            ncchannels_set_bg_rgb(&channels, m_parent->get_bg_rgb());
             ncchannels_set_bg_alpha(&channels, 0x00);
         }
 
@@ -94,6 +102,10 @@ public:
                 m_lineEdit->cursor_move(0,0);
 
         }
+
+        m_lineEdit->set_bg_default();
+        m_lineEdit->set_fg_default();
+        m_lineEdit->set_bg_alpha(0xFF);
     }
 
     void set_title(std::wstring title) {
@@ -117,10 +129,12 @@ public:
 
         m_lineEdit->set_fg_default();
 
-        if (m_focused)
+        if (m_focused) {
             m_lineEdit->set_bg_rgb(DEFAULT_SELECTED);
+            m_lineEdit->set_bg_alpha(0xFF);
+        }
         else {
-            m_lineEdit->set_bg_default();
+            m_lineEdit->set_bg_rgb(m_parent->get_bg_rgb());
             m_lineEdit->set_bg_alpha(0x00);
         }
 
@@ -149,6 +163,10 @@ public:
                 }
             }
         }
+
+        m_lineEdit->set_bg_default();
+        m_lineEdit->set_fg_default();
+        m_lineEdit->set_bg_alpha(0xFF);
     }
 
     void update() override {
