@@ -3,6 +3,7 @@
 #include <thread>
 #include <chrono>
 #include <mutex>
+#include <iostream>
 
 #include <ncpp/NotCurses.hh>
 
@@ -19,12 +20,17 @@ bool mouse_supported = true;
 int main() {
 	const std::chrono::milliseconds frameTarget(static_cast<int>(1000.0/FRAME_TARGET));
 
+    // clear the screen with ANSI magic
+    util::magic::cls();
+
 	if (!setlocale(LC_ALL, ""))
 		return 1;
 
 	notcurses_options ncopts{};
-    ncopts.flags = NCOPTION_INHIBIT_SETLOCALE; // | NCOPTION_NO_ALTERNATE_SCREEN;
+    ncopts.flags = NCOPTION_INHIBIT_SETLOCALE | NCOPTION_SUPPRESS_BANNERS  | NCOPTION_NO_ALTERNATE_SCREEN;
     ncpp::NotCurses nc(ncopts);
+
+    // Attempt to enable mouse. If not, thats alright!
     try {
         nc.mouse_enable(NCMICE_ALL_EVENTS);
     }
@@ -32,15 +38,17 @@ int main() {
         mouse_supported = false;
     }
 
-	GameState *gs = new ApiKeyGameState(&nc, nullptr, &ncmtx);
+	GameState *gs = new ApiKeyGameState(&nc, nullptr);
 
     std::atomic<bool> gameover = false;
-    // io loop (gets its own thread)
+    // io loop (gets its own thread). TODO: Migrate this to its own class.
     auto ioctl = [&] {
         forever {
             char32_t ch = 0;
             ncinput ni;
+
             ch = nc.get(true, &ni);
+            ncmtx.lock();
 
             if (ch == 'q' and !gs->block_fortype()) {
                 gameover = true;
@@ -53,6 +61,7 @@ int main() {
             }
 
             gs->handle_event(ni, ch);
+            ncmtx.unlock();
         }
     };
 

@@ -3,6 +3,7 @@
 
 #define forever while(true)
 
+#include <iostream> // use sparsely
 
 namespace util {
     namespace cwstr {
@@ -52,6 +53,12 @@ namespace util {
             constexpr int SELECTED = 0xE68A00;
             constexpr int WINDOW_BG = 0xFF5E00;
 
+        }
+    }
+
+    namespace magic {
+        inline void cls() {
+            std::cout << "\033[2J\033[H" << std::flush;
         }
     }
 }
