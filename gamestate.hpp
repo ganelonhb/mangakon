@@ -20,7 +20,7 @@ public:
 
 
     virtual void update() {}
-    virtual void handle_event(ncinput &ni) {}
+    virtual void handle_event(ncinput &ni, char32_t ch) {}
     virtual bool block_fortype() { return false; }
 
 protected:

@@ -16,7 +16,7 @@ constexpr int DEFAULT_SELECTED = util::colors::defaults::SELECTED;
 
 class NCLineEdit : public FocusWidget {
 public:
-    explicit NCLineEdit(ncpp::NotCurses *nc, ncpp::Plane *parent = nullptr, uint32_t y = 0, uint32_t x = 0, uint32_t h = 1, uint32_t w = 10, bool isDefault = false, std::wstring title = L"", std::mutex *mut = nullptr)
+    explicit NCLineEdit(ncpp::NotCurses *nc, ncpp::Plane *parent = nullptr, uint32_t y = 0, uint32_t x = 0, uint32_t h = 1, uint32_t w = 10, bool isDefault = false, std::wstring title = L"", std::mutex *mut = nullptr, bool secure = false, wchar_t secure_char = L'*')
     : FocusWidget{nc, parent}
     , m_y{y}
     , m_x{x}
@@ -28,6 +28,8 @@ public:
     , m_frame{0u}
     , clicked{mut}
     , m_title{title}
+    , m_secure{secure}
+    , m_secure_char{secure_char}
     {
         m_lineEdit = new ncpp::Plane(m_parent, m_h + 2,m_w + 2,m_y,m_x);
     }
@@ -139,7 +141,13 @@ public:
         }
 
         m_lineEdit->cursor_move(1, 1);
-        m_lineEdit->putstr(visible_text.c_str());
+        if (m_secure) {
+            for(size_t i = 0; i <visible_text.size(); ++i)
+                m_lineEdit->putwch(m_secure_char);
+        }
+        else {
+            m_lineEdit->putstr(visible_text.c_str());
+        }
 
         if (m_focused) {
             uint32_t cursor_screen_pos = 1;
@@ -156,8 +164,8 @@ public:
                 if (m_frame >= 0u and m_frame < 30) {
                     m_lineEdit->cursor_move(1, cursor_screen_pos);
                     m_lineEdit->styles_set(ncpp::CellStyle(NCSTYLE_UNDERLINE));
-
-                    m_lineEdit->putwch((m_cursor_pos < m_text.size()) ? m_text[m_cursor_pos] : L' ');
+                    wchar_t blinker = m_secure ? m_secure_char : m_text[m_cursor_pos];
+                    m_lineEdit->putwch((m_cursor_pos < m_text.size()) ? blinker : L' ');
 
                     m_lineEdit->styles_off(ncpp::CellStyle(NCSTYLE_UNDERLINE));
                 }
@@ -178,10 +186,14 @@ public:
         ++m_frame;
     }
 
+    inline bool collides_mouse(unsigned mouse_y, unsigned mouse_x) {
+        int p_y = m_parent->get_y();
+        int p_x = m_parent->get_x();
+        return mouse_x >= p_x + m_x and mouse_x <= p_x + m_x + m_w + 2 and mouse_y >= p_y + m_y and mouse_y <= p_y + m_y + m_h + 2;
+    }
+
     void handle_click(unsigned mouse_y, unsigned mouse_x) override {
-        unsigned parent_h, parent_w;
-        m_parent->get_dim(&parent_h, &parent_w);
-        if (mouse_x >= m_x and mouse_x <= m_x + m_w + 2 and mouse_y >= m_y and mouse_y <= m_y + m_h + 2)
+        if (collides_mouse(mouse_y, mouse_x))
         {
             m_focused = true; // TODO: Delete me.
             emit clicked();
@@ -294,6 +306,7 @@ public:
 
 public signals:
     Signal<> clicked;
+    Signal<> activated;
 
 
 private:
@@ -310,6 +323,9 @@ private:
     bool m_focused;
 
     uint8_t m_frame;
+
+    bool m_secure;
+    wchar_t m_secure_char;
 };
 
 #endif

@@ -10,15 +10,15 @@
 #include "title.h"
 #include "nclineedit.hpp"
 
-class ApiKeyGameState : GameState {
+class ApiKeyGameState : public GameState {
 public:
     explicit ApiKeyGameState(ncpp::NotCurses *nc, ncpp::Plane *parent = nullptr, std::mutex *mtx = nullptr);
     ~ApiKeyGameState();
 
     void update() override;
-    void handle_event(ncinput &ni) override {} // TODO: fixme
+    void handle_event(ncinput &ni, char32_t ch) override; // TODO: fixme
 
-    bool block_fortype() override{return false;} // TODO: fixme
+    bool block_fortype() override;
 
 private:
     std::mutex *m_mtx;

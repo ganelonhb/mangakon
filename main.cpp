@@ -14,6 +14,7 @@
 #define FRAME_TARGET 60.
 
 std::mutex ncmtx;
+bool mouse_supported = true;
 
 int main() {
 	const std::chrono::milliseconds frameTarget(static_cast<int>(1000.0/FRAME_TARGET));
@@ -24,9 +25,14 @@ int main() {
 	notcurses_options ncopts{};
     ncopts.flags = NCOPTION_INHIBIT_SETLOCALE; // | NCOPTION_NO_ALTERNATE_SCREEN;
     ncpp::NotCurses nc(ncopts);
-    nc.mouse_enable(NCMICE_ALL_EVENTS);
+    try {
+        nc.mouse_enable(NCMICE_ALL_EVENTS);
+    }
+    catch (ncpp::call_error &e) {
+        mouse_supported = false;
+    }
 
-	ApiKeyGameState gs(&nc, nullptr);
+	GameState *gs = new ApiKeyGameState(&nc, nullptr, &ncmtx);
 
     std::atomic<bool> gameover = false;
     // io loop (gets its own thread)
@@ -36,21 +42,17 @@ int main() {
             ncinput ni;
             ch = nc.get(true, &ni);
 
-            if (ch == 'q') {
+            if (ch == 'q' and !gs->block_fortype()) {
                 gameover = true;
                 return;
             }
 
-            if (ni.y > -1 and ni.x > -1 and ch == NCKEY_BUTTON1) { // Process mouse click
-
-                continue;
+            if (ch == 'L' && ni.ctrl) {
+                nc.refresh(nullptr, nullptr);
+                return;
             }
 
-            if (ni.evtype == ncpp::EvType::Release)
-                continue;
-
-            if (ch == 'L' && ni.ctrl)
-                nc.refresh(nullptr, nullptr);
+            gs->handle_event(ni, ch);
         }
     };
 
@@ -64,7 +66,7 @@ int main() {
         std::chrono::time_point<std::chrono::high_resolution_clock> frameStart = std::chrono::high_resolution_clock::now();
 
         ncmtx.lock();
-		gs.update();
+		gs->update();
         nc.render();
         ncmtx.unlock();
 
@@ -78,7 +80,9 @@ int main() {
 
     listen.join();
 
-    nc.mouse_disable();
+    if (mouse_supported)
+        nc.mouse_disable();
     int EXIT_CODE = nc.stop() ? 0 : -1;
+    delete gs;
 	return EXIT_CODE;
 }
