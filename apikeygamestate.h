@@ -9,7 +9,7 @@
 #include "gamestate.hpp"
 #include "title.h"
 #include "nclineedit.hpp"
-//#include "ncpushbutton.hpp"
+#include "ncpushbutton.hpp"
 
 class ApiKeyGameState : public GameState {
 public:
@@ -29,8 +29,8 @@ private:
     NCLineEdit *m_usr;
     NCLineEdit *m_pss;
 
-    /*NCPushButton *m_ok;
-    NCPushButton *m_skip; */
+    NCPushButton *m_ok;
+    /*NCPushButton *m_skip; */
 
     FocusWidget *m_focused;
 };

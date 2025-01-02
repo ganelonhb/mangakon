@@ -43,7 +43,7 @@ ApiKeyGameState::ApiKeyGameState(ncpp::NotCurses *nc, ncpp::Plane *parent, std::
 
     m_pss = new NCLineEdit(m_nc, m_window, 12, 3, 1, 82, false, L"Password", m_mtx, true);
 
-    //m_ok = new NCPushButton(m_nc, m_window, L"Ok", 1, 1, 1, m_mtx);
+    m_ok = new NCPushButton(m_nc, m_window, L"Ok", 1, 1, 1, m_mtx);
 }
 
 ApiKeyGameState::~ApiKeyGameState() {
@@ -57,7 +57,7 @@ void ApiKeyGameState::update() {
     if (m_title) m_title->update();
     if (m_usr) m_usr->update();
     if (m_pss) m_pss->update();
-    //if (m_ok) m_ok->update();
+    if (m_ok) m_ok->update();
 
     unsigned y, x;
     m_parent->get_dim(&y, &x);

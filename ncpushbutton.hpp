@@ -1,10 +1,7 @@
 #ifndef NCPUSHBUTTON_HPP
 #define NCPUSHBUTTON_HPP
 
-#include <ncpp/NotCurses.hh>
-#include <ncpp/Plane.hh>
 #include <atomic>
-#include <string>
 #include <mutex>
 
 #include "focuswidget.hpp"
@@ -62,7 +59,7 @@ public:
             ncchannels_set_bg_alpha(&channels, 0x00);
         }
 
-        m_pushButton->rounded_box_sized(0, channels, m_h + 2, m_w + 2, 0);
+        m_pushButton->rounded_box_sized(0, channels, m_h, m_w, 0);
 
         m_pushButton->set_bg_default();
         m_pushButton->set_fg_default();
@@ -71,12 +68,20 @@ public:
 
     inline void draw_text() {
         m_pushButton->set_fg_default();
-        m_pushButton->set_bg_alpha(0x00);
+        if (m_pressing) {
+            m_pushButton->set_bg_rgb(util::colors::defaults::BUTTONPRESS);
+            m_pushButton->set_bg_alpha(0xFF);
+        }
+        else {
+            m_pushButton->set_bg_rgb(m_focused ? util::colors::defaults::SELECTED : util::colors::defaults::BUTTON);
+            m_pushButton->set_bg_alpha(0x00);
+        }
 
         m_pushButton->cursor_move(1, 2);
 
         m_pushButton->putstr(m_text.c_str());
 
+        m_pushButton->set_bg_default();
         m_pushButton->set_bg_alpha(0xFF);
     }
 
@@ -93,9 +98,6 @@ public signals:
     Signal<> released;
 
 private:
-    ncpp::NotCurses *m_nc;
-    ncpp::Plane *m_parent;
-
     ncpp::Plane *m_pushButton;
 
     std::wstring m_text;
