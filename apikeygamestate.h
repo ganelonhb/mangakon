@@ -9,6 +9,7 @@
 #include "gamestate.hpp"
 #include "title.h"
 #include "nclineedit.hpp"
+//#include "ncpushbutton.hpp"
 
 class ApiKeyGameState : public GameState {
 public:
@@ -21,13 +22,15 @@ public:
     bool block_fortype() override;
 
 private:
-    std::mutex *m_mtx;
     Title *m_title;
 
     ncpp::Plane *m_window;
 
     NCLineEdit *m_usr;
     NCLineEdit *m_pss;
+
+    /*NCPushButton *m_ok;
+    NCPushButton *m_skip; */
 
     FocusWidget *m_focused;
 };

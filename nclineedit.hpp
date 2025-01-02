@@ -12,8 +12,6 @@
 #include "signal.hpp"
 #include "utils.hpp"
 
-constexpr int DEFAULT_SELECTED = util::colors::defaults::SELECTED;
-
 class NCLineEdit : public FocusWidget {
 public:
     explicit NCLineEdit(ncpp::NotCurses *nc, ncpp::Plane *parent = nullptr, uint32_t y = 0, uint32_t x = 0, uint32_t h = 1, uint32_t w = 10, bool isDefault = false, std::wstring title = L"", std::mutex *mut = nullptr, bool secure = false, wchar_t secure_char = L'*')
@@ -27,6 +25,7 @@ public:
     , m_focused{isDefault}
     , m_frame{0u}
     , clicked{mut}
+    , activated{mut}
     , m_title{title}
     , m_secure{secure}
     , m_secure_char{secure_char}
@@ -67,7 +66,7 @@ public:
         m_lineEdit->set_fg_default();
 
         if (m_focused) {
-            m_lineEdit->set_bg_rgb(DEFAULT_SELECTED);
+            m_lineEdit->set_bg_rgb(util::colors::defaults::SELECTED);
             m_lineEdit->set_bg_alpha(0xFF);
         }
         else {
@@ -83,7 +82,7 @@ public:
         m_lineEdit->cursor_move(0,0);
 
         if (m_focused) {
-            ncchannels_set_bg_rgb(&channels, DEFAULT_SELECTED);
+            ncchannels_set_bg_rgb(&channels, util::colors::defaults::SELECTED);
             ncchannels_set_bg_alpha(&channels, 0xFF);
         }
         else {
@@ -132,7 +131,7 @@ public:
         m_lineEdit->set_fg_default();
 
         if (m_focused) {
-            m_lineEdit->set_bg_rgb(DEFAULT_SELECTED);
+            m_lineEdit->set_bg_rgb(util::colors::defaults::SELECTED);
             m_lineEdit->set_bg_alpha(0xFF);
         }
         else {

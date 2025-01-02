@@ -4,10 +4,13 @@
 #include <ncpp/NotCurses.hh>
 #include <ncpp/Plane.hh>
 
+#include <mutex>
+
 class GameState {
 public:
-    explicit GameState(ncpp::NotCurses *nc, ncpp::Plane *parent = nullptr)
+    explicit GameState(ncpp::NotCurses *nc, ncpp::Plane *parent = nullptr, std::mutex *mtx = nullptr)
         : m_nc{nc}
+        , m_mtx{mtx}
         , m_ownsParent{!bool(parent)}
     {
         m_parent = m_ownsParent ? m_nc->get_stdplane() : parent;
@@ -26,6 +29,8 @@ public:
 protected:
     ncpp::NotCurses *m_nc;
     ncpp::Plane *m_parent;
+
+    std::mutex *m_mtx;
 
     bool m_ownsParent;
 };

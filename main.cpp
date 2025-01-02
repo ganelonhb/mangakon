@@ -38,7 +38,7 @@ int main() {
         mouse_supported = false;
     }
 
-	GameState *gs = new ApiKeyGameState(&nc, nullptr);
+	GameState *gs = new ApiKeyGameState(&nc, nullptr, &ncmtx);
 
     std::atomic<bool> gameover = false;
     // io loop (gets its own thread). TODO: Migrate this to its own class.

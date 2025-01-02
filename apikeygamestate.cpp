@@ -5,22 +5,24 @@ constexpr int MENU_Y = 20;
 constexpr int MENU_X = 90;
 
 ApiKeyGameState::ApiKeyGameState(ncpp::NotCurses *nc, ncpp::Plane *parent, std::mutex *mtx)
-    : GameState{nc, parent}
-    , m_mtx{mtx}
+    : GameState{nc, parent, mtx}
 {
     m_title = new Title(m_nc, m_parent, 5);
+
+    unsigned FG = util::colors::defaults::WINDOW_BG;
+    unsigned BG = util::colors::defaults::SELECTED;
 
     unsigned y;
     unsigned x;
     m_parent->get_dim(&y, &x);
 
     m_window = new ncpp::Plane(m_parent, MENU_Y, MENU_X, (y / 2) - (MENU_Y / 2),  (x / 2) - (MENU_X / 2));
-    m_window->set_fg_default();
-    m_window->set_bg_rgb(util::colors::defaults::WINDOW_BG);
+    m_window->set_fg_rgb(BG);
+    m_window->set_bg_rgb(FG);
 
     uint64_t channels = 0;
-    ncchannels_set_bg_rgb(&channels, util::colors::defaults::WINDOW_BG);
-    ncchannels_set_fg_default(&channels);
+    ncchannels_set_bg_rgb(&channels, FG);
+    ncchannels_set_fg_rgb(&channels, BG);
 
     for(size_t xpos = 0; xpos < MENU_X; ++xpos) {
         for (size_t ypos = 0; ypos < MENU_Y; ++ypos) {
@@ -40,6 +42,8 @@ ApiKeyGameState::ApiKeyGameState(ncpp::NotCurses *nc, ncpp::Plane *parent, std::
     m_focused = static_cast<FocusWidget*>(m_usr);
 
     m_pss = new NCLineEdit(m_nc, m_window, 12, 3, 1, 82, false, L"Password", m_mtx, true);
+
+    //m_ok = new NCPushButton(m_nc, m_window, L"Ok", 1, 1, 1, m_mtx);
 }
 
 ApiKeyGameState::~ApiKeyGameState() {
@@ -53,6 +57,7 @@ void ApiKeyGameState::update() {
     if (m_title) m_title->update();
     if (m_usr) m_usr->update();
     if (m_pss) m_pss->update();
+    //if (m_ok) m_ok->update();
 
     unsigned y, x;
     m_parent->get_dim(&y, &x);

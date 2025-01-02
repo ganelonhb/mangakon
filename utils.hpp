@@ -2,8 +2,14 @@
 #define UTILS_HPP
 
 #define forever while(true)
+#define pass (void)(0)
 
 #include <iostream> // use sparsely
+#include <sstream>
+#include <regex>
+
+#include <termios.h>
+#include <fcntl.h>
 
 namespace util {
     namespace cwstr {
@@ -52,7 +58,9 @@ namespace util {
         namespace defaults {
             constexpr int SELECTED = 0xE68A00;
             constexpr int WINDOW_BG = 0xFF5E00;
+            constexpr int BUTTON = 0xFF7E33;
 
+            constexpr int BUTTONPRESS = 0xE65400;
         }
     }
 
