@@ -1,17 +1,31 @@
 #ifndef GAMESTATE_HPP
 #define GAMESTATE_HPP
 
+#include <mutex>
+#include <string>
+#include <map>
+
 #include <ncpp/NotCurses.hh>
 #include <ncpp/Plane.hh>
 
-#include <mutex>
+using gamestate_t = uint32_t;
+
+namespace GameStateType {
+    constexpr gamestate_t UNKNOWN = -1;
+}
+
+struct gs_info_t {
+    gamestate_t state;
+    std::map<std::string, std::wstring> kwargs;
+};
 
 class GameState {
 public:
-    explicit GameState(ncpp::NotCurses *nc, ncpp::Plane *parent = nullptr, std::mutex *mtx = nullptr)
+    explicit GameState(ncpp::NotCurses *nc, ncpp::Plane *parent = nullptr, std::mutex *mtx = nullptr, gamestate_t type = GameStateType::UNKNOWN)
         : m_nc{nc}
         , m_mtx{mtx}
         , m_ownsParent{!bool(parent)}
+        , m_type{type}
     {
         m_parent = m_ownsParent ? m_nc->get_stdplane() : parent;
     }
@@ -23,7 +37,7 @@ public:
 
 
     virtual void update() {}
-    virtual void handle_event(ncinput &ni, char32_t ch) {}
+    virtual gs_info_t* handle_event(ncinput &ni, char32_t ch) { return nullptr; }
     virtual bool block_fortype() { return false; }
 
 protected:
@@ -33,6 +47,8 @@ protected:
     std::mutex *m_mtx;
 
     bool m_ownsParent;
+
+    gamestate_t m_type;
 };
 
 #endif

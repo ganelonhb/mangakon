@@ -1,7 +1,6 @@
 #ifndef NCPUSHBUTTON_HPP
 #define NCPUSHBUTTON_HPP
 
-#include <atomic>
 #include <mutex>
 
 #include "focuswidget.hpp"

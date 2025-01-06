@@ -5,7 +5,7 @@ constexpr int MENU_Y = 20;
 constexpr int MENU_X = 90;
 
 ApiKeyGameState::ApiKeyGameState(ncpp::NotCurses *nc, ncpp::Plane *parent, std::mutex *mtx)
-    : GameState{nc, parent, mtx}
+    : GameState{nc, parent, mtx, GameStateType::APIKEYGAMESTATE}
 {
     m_title = new Title(m_nc, m_parent, 5);
 
@@ -80,7 +80,7 @@ bool ApiKeyGameState::block_fortype() {
     return static_cast<bool>(m_focused);
 }
 
-void ApiKeyGameState::handle_event(ncinput &ni, char32_t ch) {
+gs_info_t* ApiKeyGameState::handle_event(ncinput &ni, char32_t ch) {
     NCLineEdit *focused = static_cast<NCLineEdit*>(m_focused);
 
     if (ni.y > -1 and ni.x > -1 and ch == NCKEY_BUTTON1) { // Process mouse click
@@ -92,7 +92,7 @@ void ApiKeyGameState::handle_event(ncinput &ni, char32_t ch) {
             m_ok->unfocus();
             m_skip->unfocus();
             m_focused = static_cast<FocusWidget*>(m_usr);
-            return;
+            return nullptr;
         }
 
         if (m_pss->collides_mouse(ni.y, ni.x)) {
@@ -100,7 +100,7 @@ void ApiKeyGameState::handle_event(ncinput &ni, char32_t ch) {
             m_ok->unfocus();
             m_skip->unfocus();
             m_focused = static_cast<FocusWidget*>(m_pss);
-            return;
+            return nullptr;
         }
 
         if (m_ok->collides_mouse(ni.y, ni.x) and !m_skip->pressing()) {
@@ -117,7 +117,7 @@ void ApiKeyGameState::handle_event(ncinput &ni, char32_t ch) {
                 m_ok->handle_release(ni.y, ni.x);
                 m_ok->set_pressing(false);
             }
-            return;
+            return nullptr;
         }
         else if (!m_ok->collides_mouse(ni.y, ni.x) and m_ok->pressing()) {
             if (ni.evtype == ncpp::EvType::Release) {
@@ -141,7 +141,7 @@ void ApiKeyGameState::handle_event(ncinput &ni, char32_t ch) {
                 m_skip->handle_release(ni.y, ni.x);
                 m_skip->set_pressing(false);
             }
-            return;
+            return nullptr;
         }
         else if (!m_skip->collides_mouse(ni.y, ni.x) and m_skip->pressing()) {
             if (ni.evtype == ncpp::EvType::Release) {
@@ -151,11 +151,11 @@ void ApiKeyGameState::handle_event(ncinput &ni, char32_t ch) {
             }
         }
 
-        return;
+        return nullptr;
     }
 
     if (ni.evtype == ncpp::EvType::Release)
-        return;
+        return nullptr;
 
     if (ch == NCKEY_DOWN) {
         if (m_focused == m_usr) {
@@ -169,7 +169,7 @@ void ApiKeyGameState::handle_event(ncinput &ni, char32_t ch) {
             m_usr->focus();
         }
 
-        return;
+        return nullptr;
     }
 
     if (ch == NCKEY_TAB) {
@@ -187,7 +187,7 @@ void ApiKeyGameState::handle_event(ncinput &ni, char32_t ch) {
             m_focused = nullptr;
         }
 
-        return;
+        return nullptr;
     }
 
     if (ch == NCKEY_UP) {
@@ -202,30 +202,30 @@ void ApiKeyGameState::handle_event(ncinput &ni, char32_t ch) {
             m_usr->focus();
         }
 
-        return;
+        return nullptr;
     }
 
     if (!focused || focused->type() != FocusType::NCLINEEDIT)
-        return;
+        return nullptr;
 
     if (ch == NCKEY_BACKSPACE) {
         focused->backspace();
-        return;
+        return nullptr;
     }
 
     if (ch == NCKEY_DEL) {
         focused->del();
-        return;
+        return nullptr;
     }
 
     if (ch == NCKEY_LEFT) {
         focused->left();
-        return;
+        return nullptr;
     }
 
     if (ch == NCKEY_RIGHT) {
         focused->right();
-        return;
+        return nullptr;
     }
 
     if (ch == NCKEY_ESC or ch == NCKEY_ENTER) {
@@ -233,10 +233,12 @@ void ApiKeyGameState::handle_event(ncinput &ni, char32_t ch) {
         if (ch == NCKEY_ENTER)
             emit focused->activated();
         m_focused = nullptr;
-        return;
+        return nullptr;
     }
 
     if (ch >= 32 && ch <= 0x10FFFF) {
         focused->putch(ch);
     }
+
+    return nullptr;
 }

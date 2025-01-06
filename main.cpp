@@ -3,14 +3,12 @@
 #include <thread>
 #include <chrono>
 #include <mutex>
-#include <iostream>
 
 #include <ncpp/NotCurses.hh>
 
-#include "utils.hpp"
 #include "apikeygamestate.h"
-
-#include "nclineedit.hpp"
+#include "ioctl.hpp"
+#include "utils.hpp"
 
 #define FRAME_TARGET 60.
 
@@ -39,36 +37,10 @@ int main() {
         mouse_supported = false;
     }
 
+    // IO loop
 	GameState *gs = new ApiKeyGameState(&nc, nullptr, &ncmtx);
-
-    std::atomic<bool> gameover = false;
-    // io loop (gets its own thread). TODO: Migrate this to its own class.
-    auto ioctl = [&] {
-        forever {
-            char32_t ch = 0;
-            ncinput ni;
-
-            ch = nc.get(true, &ni);
-            ncmtx.lock();
-
-            if (ch == 'q' and !gs->block_fortype()) {
-                gameover = true;
-                ncmtx.unlock();
-                return;
-            }
-
-            if (ch == 'L' && ni.ctrl) {
-                nc.refresh(nullptr, nullptr);
-                ncmtx.unlock();
-                return;
-            }
-
-            gs->handle_event(ni, ch);
-            ncmtx.unlock();
-        }
-    };
-
-    std::thread listen(ioctl);
+    IOCtl ioctl(&nc, &ncmtx, gs);
+    std::thread listen(&IOCtl::loop, &ioctl);
 
     // main loop
 	forever
@@ -77,7 +49,7 @@ int main() {
 
         ncmtx.lock();
 
-        if (gameover) {
+        if (ioctl.gameover()) {
             ncmtx.unlock();
             break;
         }
