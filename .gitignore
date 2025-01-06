@@ -40,3 +40,4 @@
 ./tools/
 
 err.txt
+leak.txt
