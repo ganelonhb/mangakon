@@ -14,7 +14,7 @@
 class ApiKeyGameState : public GameState {
 public:
     explicit ApiKeyGameState(ncpp::NotCurses *nc, ncpp::Plane *parent = nullptr, std::mutex *mtx = nullptr);
-    ~ApiKeyGameState();
+    ~ApiKeyGameState() override;
 
     void update() override;
     void handle_event(ncinput &ni, char32_t ch) override; // TODO: fixme
@@ -30,7 +30,7 @@ private:
     NCLineEdit *m_pss;
 
     NCPushButton *m_ok;
-    /*NCPushButton *m_skip; */
+    NCPushButton *m_skip;
 
     FocusWidget *m_focused;
 };

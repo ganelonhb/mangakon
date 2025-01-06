@@ -8,10 +8,14 @@
 #include "signal.hpp"
 #include "utils.hpp"
 
+namespace FocusType {
+    constexpr focus_t NCPUSHBUTTON = util::compile_time_id::get_id("NCPushButton");
+}
+
 class NCPushButton : public FocusWidget {
 public:
   explicit NCPushButton(ncpp::NotCurses *nc, ncpp::Plane *parent = nullptr, std::wstring text = L"PushButton", uint32_t y = 0, uint32_t x = 0, uint32_t h = 1, std::mutex *mut = nullptr)
-        : FocusWidget{nc, parent}
+        : FocusWidget{nc, parent, FocusType::NCPUSHBUTTON}
         , m_text{text}
         , m_y{y}
         , m_x{x}
@@ -23,7 +27,11 @@ public:
         , m_pressing{false}
     {
         m_w = text.size() + 4;
-        m_pushButton = new ncpp::Plane(m_parent, m_h, m_w, m_y, m_x);
+        m_pushButton = std::make_unique<ncpp::Plane>(m_parent, m_h, m_w, m_y, m_x);
+    }
+
+    ~NCPushButton() override {
+        FocusWidget::~FocusWidget();
     }
 
     bool focused() const override {
@@ -90,7 +98,58 @@ public:
         draw_text();
     }
 
-    void handle_click(unsigned mouse_y, unsigned mouse_x) override {}
+    void handle_press(unsigned mouse_y, unsigned mouse_x) {
+        if (collides_mouse(mouse_y, mouse_x)) {
+            m_pressing = true;
+            emit pressed();
+        }
+    }
+
+    void handle_release(unsigned mouse_y, unsigned mouse_x) {
+        if (collides_mouse(mouse_y, mouse_x)) {
+            emit released();
+        }
+
+        m_pressing = false;
+    }
+
+    void set_pressing(bool pressing) {
+        m_pressing = pressing;
+    }
+
+    bool pressing() const {
+        return m_pressing;
+    }
+
+    void focus() override {
+        m_focused = true;
+    }
+
+    void unfocus() override {
+        m_focused = false;
+    }
+
+    void setFocus(bool focus) {
+        m_focused = focus;
+    }
+
+    void handle_click(unsigned mouse_y, unsigned mouse_x) override {
+        if (collides_mouse(mouse_y, mouse_x)) {
+            m_focused = true; // TODO: delete me
+            emit clicked();
+        }
+        else {
+            m_focused = false;
+        }
+    }
+
+    inline bool collides_mouse(unsigned mouse_y, unsigned mouse_x) {
+        int p_y = m_parent->get_y();
+        int p_x = m_parent->get_x();
+
+
+        return mouse_x >= p_x + m_x and mouse_x <= p_x + m_x + m_w + 2 and mouse_y >= p_y + m_y and mouse_y <= p_y + m_y + m_h + 2;
+    }
 
 public signals:
     Signal<> clicked;
@@ -98,7 +157,8 @@ public signals:
     Signal<> released;
 
 private:
-    ncpp::Plane *m_pushButton;
+
+    std::unique_ptr<ncpp::Plane> m_pushButton;
 
     std::wstring m_text;
 

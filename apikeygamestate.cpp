@@ -38,12 +38,15 @@ ApiKeyGameState::ApiKeyGameState(ncpp::NotCurses *nc, ncpp::Plane *parent, std::
     m_window->set_fg_default();
     m_window->set_bg_default();
 
+
+
     m_usr = new NCLineEdit(m_nc, m_window, 3, 3, 1, 82, true, L"Username", m_mtx);
     m_focused = static_cast<FocusWidget*>(m_usr);
 
-    m_pss = new NCLineEdit(m_nc, m_window, 12, 3, 1, 82, false, L"Password", m_mtx, true);
+    m_pss = new NCLineEdit(m_nc, m_window, 7, 3, 1, 82, false, L"Password", m_mtx, true);
 
-    m_ok = new NCPushButton(m_nc, m_window, L"Ok", 1, 1, 1, m_mtx);
+    m_ok = new NCPushButton(m_nc, m_window, L"Ok", MENU_Y - 4, MENU_X - 7, 1, m_mtx);
+    m_skip = new NCPushButton(m_nc, m_window, L"Skip", MENU_Y - 4, MENU_X - 17, 1, m_mtx);
 }
 
 ApiKeyGameState::~ApiKeyGameState() {
@@ -51,6 +54,13 @@ ApiKeyGameState::~ApiKeyGameState() {
 
     delete m_usr;
     delete m_pss;
+
+    delete m_ok;
+    delete m_skip;
+
+    delete m_window;
+
+    GameState::~GameState();
 }
 
 void ApiKeyGameState::update() {
@@ -58,6 +68,7 @@ void ApiKeyGameState::update() {
     if (m_usr) m_usr->update();
     if (m_pss) m_pss->update();
     if (m_ok) m_ok->update();
+    if (m_skip) m_skip->update();
 
     unsigned y, x;
     m_parent->get_dim(&y, &x);
@@ -78,14 +89,68 @@ void ApiKeyGameState::handle_event(ncinput &ni, char32_t ch) {
 
         if (m_usr->collides_mouse(ni.y, ni.x)) {
             m_usr->focus();
+            m_ok->unfocus();
+            m_skip->unfocus();
             m_focused = static_cast<FocusWidget*>(m_usr);
             return;
         }
 
         if (m_pss->collides_mouse(ni.y, ni.x)) {
             m_pss->focus();
+            m_ok->unfocus();
+            m_skip->unfocus();
             m_focused = static_cast<FocusWidget*>(m_pss);
+            return;
         }
+
+        if (m_ok->collides_mouse(ni.y, ni.x) and !m_skip->pressing()) {
+            if (ni.evtype == ncpp::EvType::Press) {
+                m_ok->focus();
+                m_skip->unfocus();
+                m_focused = m_ok;
+                m_ok->set_pressing(true);
+            }
+            else if (ni.evtype == ncpp::EvType::Release) {
+                m_ok->focus();
+                m_skip->unfocus();
+                m_focused = m_ok;
+                m_ok->handle_release(ni.y, ni.x);
+                m_ok->set_pressing(false);
+            }
+            return;
+        }
+        else if (!m_ok->collides_mouse(ni.y, ni.x) and m_ok->pressing()) {
+            if (ni.evtype == ncpp::EvType::Release) {
+                m_ok->unfocus();
+                m_ok->set_pressing(false);
+                m_focused = nullptr;
+            }
+        }
+
+        if (m_skip->collides_mouse(ni.y, ni.x) and !m_ok->pressing()) {
+            if (ni.evtype == ncpp::EvType::Press) {
+                m_skip->focus();
+                m_ok->unfocus();
+                m_focused = m_skip;
+                m_skip->set_pressing(true);
+            }
+            else if (ni.evtype == ncpp::EvType::Release) {
+                m_skip->focus();
+                m_ok->unfocus();
+                m_focused = m_skip;
+                m_skip->handle_release(ni.y, ni.x);
+                m_skip->set_pressing(false);
+            }
+            return;
+        }
+        else if (!m_skip->collides_mouse(ni.y, ni.x) and m_skip->pressing()) {
+            if (ni.evtype == ncpp::EvType::Release) {
+                m_skip->unfocus();
+                m_skip->set_pressing(false);
+                m_focused = nullptr;
+            }
+        }
+
         return;
     }
 
@@ -140,7 +205,7 @@ void ApiKeyGameState::handle_event(ncinput &ni, char32_t ch) {
         return;
     }
 
-    if (!focused)
+    if (!focused || focused->type() != FocusType::NCLINEEDIT)
         return;
 
     if (ch == NCKEY_BACKSPACE) {

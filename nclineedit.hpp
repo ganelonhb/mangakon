@@ -8,14 +8,20 @@
 #include <string>
 #include <mutex>
 
+#include <memory>
+
 #include "focuswidget.hpp"
 #include "signal.hpp"
 #include "utils.hpp"
 
+namespace FocusType {
+    constexpr focus_t NCLINEEDIT = util::compile_time_id::get_id("NCLineEdit");
+}
+
 class NCLineEdit : public FocusWidget {
 public:
     explicit NCLineEdit(ncpp::NotCurses *nc, ncpp::Plane *parent = nullptr, uint32_t y = 0, uint32_t x = 0, uint32_t h = 1, uint32_t w = 10, bool isDefault = false, std::wstring title = L"", std::mutex *mut = nullptr, bool secure = false, wchar_t secure_char = L'*')
-    : FocusWidget{nc, parent}
+    : FocusWidget{nc, parent, FocusType::NCLINEEDIT}
     , m_y{y}
     , m_x{x}
     , m_h{h}
@@ -30,22 +36,26 @@ public:
     , m_secure{secure}
     , m_secure_char{secure_char}
     {
-        m_lineEdit = new ncpp::Plane(m_parent, m_h + 2,m_w + 2,m_y,m_x);
+        m_lineEdit = std::make_unique<ncpp::Plane>(m_parent, m_h + 2, m_w + 2,m_y,m_x);
+    }
+
+    ~NCLineEdit() override {
+        FocusWidget::~FocusWidget();
     }
 
     bool focused() const override {
         return m_focused;
     }
 
-    void focus() {
+    void focus() override {
         m_focused = true;
     }
 
-    void unfocus() {
+    void unfocus() override {
         m_focused = false;
     }
 
-    void setFocus(bool focus) {
+    void setFocus(bool focus) override {
         m_focused = focus;
     }
 
@@ -185,12 +195,6 @@ public:
         ++m_frame;
     }
 
-    inline bool collides_mouse(unsigned mouse_y, unsigned mouse_x) {
-        int p_y = m_parent->get_y();
-        int p_x = m_parent->get_x();
-        return mouse_x >= p_x + m_x and mouse_x <= p_x + m_x + m_w + 2 and mouse_y >= p_y + m_y and mouse_y <= p_y + m_y + m_h + 2;
-    }
-
     void handle_click(unsigned mouse_y, unsigned mouse_x) override {
         if (collides_mouse(mouse_y, mouse_x))
         {
@@ -303,13 +307,22 @@ public:
         return m_scroll_offset;
     }
 
+    inline bool collides_mouse(unsigned mouse_y, unsigned mouse_x) {
+        int p_y = m_parent->get_y();
+        int p_x = m_parent->get_x();
+
+
+        return mouse_x >= p_x + m_x and mouse_x <= p_x + m_x + m_w + 2 and mouse_y >= p_y + m_y and mouse_y <= p_y + m_y + m_h + 2;
+    }
+
 public signals:
     Signal<> clicked;
     Signal<> activated;
 
 
 private:
-    ncpp::Plane *m_lineEdit;
+
+    std::unique_ptr<ncpp::Plane> m_lineEdit;
 
     uint32_t m_y;
     uint32_t m_x;

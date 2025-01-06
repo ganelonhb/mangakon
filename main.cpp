@@ -30,6 +30,7 @@ int main() {
     ncopts.flags = NCOPTION_INHIBIT_SETLOCALE | NCOPTION_SUPPRESS_BANNERS  | NCOPTION_NO_ALTERNATE_SCREEN;
     ncpp::NotCurses nc(ncopts);
 
+
     // Attempt to enable mouse. If not, thats alright!
     try {
         nc.mouse_enable(NCMICE_ALL_EVENTS);
@@ -52,11 +53,13 @@ int main() {
 
             if (ch == 'q' and !gs->block_fortype()) {
                 gameover = true;
+                ncmtx.unlock();
                 return;
             }
 
             if (ch == 'L' && ni.ctrl) {
                 nc.refresh(nullptr, nullptr);
+                ncmtx.unlock();
                 return;
             }
 
@@ -70,11 +73,14 @@ int main() {
     // main loop
 	forever
     {
-        if (gameover)
-            break;
         std::chrono::time_point<std::chrono::high_resolution_clock> frameStart = std::chrono::high_resolution_clock::now();
 
         ncmtx.lock();
+
+        if (gameover) {
+            ncmtx.unlock();
+            break;
+        }
 		gs->update();
         nc.render();
         ncmtx.unlock();
@@ -91,7 +97,10 @@ int main() {
 
     if (mouse_supported)
         nc.mouse_disable();
-    int EXIT_CODE = nc.stop() ? 0 : -1;
+
+    ncmtx.lock();
     delete gs;
+    int EXIT_CODE = nc.stop() ? 0 : -1;
+    ncmtx.unlock();
 	return EXIT_CODE;
 }

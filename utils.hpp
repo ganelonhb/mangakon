@@ -12,8 +12,39 @@
 #include <fcntl.h>
 
 namespace util {
-    namespace cwstr {
+    namespace compile_time_id {
+        constexpr size_t cstrlen(const char *str) {
+            const char *start = str;
+            const char *ptr = str;
+            while (*ptr != '\0')
+                ++ptr;
 
+            return ptr - start;
+        }
+
+        constexpr uint32_t hash_string(const char* str) {
+            uint32_t hash = 0x811C9DC5u;
+
+            for (size_t i = 0; i < cstrlen(str); ++i) {
+                hash ^= static_cast<uint32_t>(str[i]);
+                hash *= 0x1000193u;
+            }
+
+            return hash;
+        }
+
+        constexpr uint32_t lcg(uint32_t seed) {
+            return (0x19660D * seed + 0x3C6EF35F) % 0xFFFFFFFF;
+        }
+
+        constexpr int get_id(const char* str) {
+            uint32_t seed = hash_string(str);
+
+            return lcg(seed);
+        }
+    }
+
+    namespace cwstr {
         constexpr int cwcslen(const wchar_t * str) {
             const wchar_t *start = str;
             const wchar_t *ptr = str;

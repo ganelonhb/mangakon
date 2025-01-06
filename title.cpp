@@ -36,6 +36,8 @@ Title::Title(ncpp::NotCurses *nc, ncpp::Plane *parent, uint32_t y, uint32_t x)
 Title::~Title() {
     if (m_ownsParent)
         delete m_parent;
+
+    delete m_title;
 }
 
 uint32_t Title::ypos() const {

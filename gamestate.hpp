@@ -16,9 +16,9 @@ public:
         m_parent = m_ownsParent ? m_nc->get_stdplane() : parent;
     }
 
-    ~GameState() {
-        if (m_ownsParent)
-            delete m_parent;
+    virtual ~GameState() {
+        /*if (m_ownsParent)
+            delete m_parent;*/
     }
 
 
