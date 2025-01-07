@@ -18,8 +18,8 @@ public:
     : m_nc{nc}
     , m_mtx{mtx}
     , m_gameover{false}
-    , m_gs{gs}
     , m_statechange{nullptr}
+    , m_gs{gs}
     {}
 
     void loop() {
@@ -38,8 +38,8 @@ public:
             char32_t ch = 0;
             ncinput ni;
 
-            m_mtx->lock();
             ch = m_nc->get(true, &ni);
+            m_mtx->lock();
 
             if (ch == 'q' and !m_gs->block_fortype()) {
                 m_gameover = true;
@@ -49,6 +49,7 @@ public:
 
             if (ch == 'L' && ni.modifiers & NCKEY_MOD_CTRL) {
                 m_nc->refresh(nullptr, nullptr);
+                m_mtx->unlock();
                 continue;
             }
 

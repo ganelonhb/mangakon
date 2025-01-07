@@ -1,7 +1,7 @@
 #include "apikeygamestate.h"
 #include "nclineedit.hpp"
 
-constexpr int MENU_Y = 20;
+constexpr int MENU_Y = 22;
 constexpr int MENU_X = 90;
 
 ApiKeyGameState::ApiKeyGameState(ncpp::NotCurses *nc, ncpp::Plane *parent, std::mutex *mtx)
@@ -41,12 +41,39 @@ ApiKeyGameState::ApiKeyGameState(ncpp::NotCurses *nc, ncpp::Plane *parent, std::
 
 
     m_usr = new NCLineEdit(m_nc, m_window, 3, 3, 1, 82, true, L"Username", m_mtx);
-    m_focused = static_cast<FocusWidget*>(m_usr);
 
     m_pss = new NCLineEdit(m_nc, m_window, 7, 3, 1, 82, false, L"Password", m_mtx, true);
 
+    m_key = new NCLineEdit(m_nc, m_window, 11, 3, 1, 82, false, L"API Key", m_mtx);
+
+    m_sct = new NCLineEdit(m_nc, m_window, 15, 3, 1, 82, false, L"Secret", m_mtx, true);
+
     m_ok = new NCPushButton(m_nc, m_window, L"Ok", MENU_Y - 4, MENU_X - 7, 1, m_mtx);
     m_skip = new NCPushButton(m_nc, m_window, L"Skip", MENU_Y - 4, MENU_X - 17, 1, m_mtx);
+
+    m_usr->setDown(m_pss);
+    m_usr->setUp(m_ok);
+
+    m_pss->setDown(m_key);
+    m_pss->setUp(m_usr);
+
+    m_key->setDown(m_sct);
+    m_key->setUp(m_pss);
+
+    m_sct->setDown(m_skip);
+    m_sct->setUp(m_key);
+
+    m_skip->setUp(m_sct);
+    m_skip->setDown(m_usr);
+    m_skip->setLeft(m_ok);
+    m_skip->setRight(m_ok);
+
+    m_ok->setUp(m_sct);
+    m_ok->setDown(m_usr);
+    m_ok->setLeft(m_skip);
+    m_ok->setRight(m_skip);
+
+    m_focused = static_cast<FocusWidget*>(m_usr);
 }
 
 ApiKeyGameState::~ApiKeyGameState() {
@@ -54,6 +81,9 @@ ApiKeyGameState::~ApiKeyGameState() {
 
     delete m_usr;
     delete m_pss;
+
+    delete m_key;
+    delete m_sct;
 
     delete m_ok;
     delete m_skip;
@@ -67,6 +97,8 @@ void ApiKeyGameState::update() {
     if (m_title) m_title->update();
     if (m_usr) m_usr->update();
     if (m_pss) m_pss->update();
+    if (m_key) m_key->update();
+    if (m_sct) m_sct->update();
     if (m_ok) m_ok->update();
     if (m_skip) m_skip->update();
 
@@ -89,6 +121,9 @@ gs_info_t* ApiKeyGameState::handle_event(ncinput &ni, char32_t ch) {
 
         if (m_usr->collides_mouse(ni.y, ni.x)) {
             m_usr->focus();
+            m_pss->unfocus();
+            m_key->unfocus();
+            m_sct->unfocus();
             m_ok->unfocus();
             m_skip->unfocus();
             m_focused = static_cast<FocusWidget*>(m_usr);
@@ -96,10 +131,34 @@ gs_info_t* ApiKeyGameState::handle_event(ncinput &ni, char32_t ch) {
         }
 
         if (m_pss->collides_mouse(ni.y, ni.x)) {
+            m_usr->unfocus();
             m_pss->focus();
-            m_ok->unfocus();
+            m_key->unfocus();
+            m_sct->unfocus();
             m_skip->unfocus();
             m_focused = static_cast<FocusWidget*>(m_pss);
+            return nullptr;
+        }
+
+        if (m_key->collides_mouse(ni.y, ni.x)) {
+            m_usr->unfocus();
+            m_pss->unfocus();
+            m_key->focus();
+            m_sct->unfocus();
+            m_ok->unfocus();
+            m_skip->unfocus();
+            m_focused = static_cast<FocusWidget*>(m_key);
+            return nullptr;
+        }
+
+        if (m_sct->collides_mouse(ni.y, ni.x)) {
+            m_usr->unfocus();
+            m_pss->unfocus();
+            m_key->unfocus();
+            m_sct->focus();
+            m_ok->unfocus();
+            m_skip->unfocus();
+            m_focused = static_cast<FocusWidget*>(m_sct);
             return nullptr;
         }
 
@@ -157,49 +216,73 @@ gs_info_t* ApiKeyGameState::handle_event(ncinput &ni, char32_t ch) {
     if (ni.evtype == ncpp::EvType::Release)
         return nullptr;
 
-    if (ch == NCKEY_DOWN) {
-        if (m_focused == m_usr) {
-            m_usr->unfocus();
-            m_focused = m_pss;
-            m_pss->focus();
-        }
-        else if(m_focused == m_pss or m_focused == nullptr) {
-            if (m_focused) m_pss->unfocus();
-            m_focused = m_usr;
-            m_usr->focus();
-        }
-
-        return nullptr;
-    }
-
     if (ch == NCKEY_TAB) {
         if (m_focused == nullptr) {
             m_usr->focus();
             m_focused = m_usr;
+
+            return nullptr;
         }
-        else if (m_focused == m_usr) {
-            m_usr->unfocus();
-            m_pss->focus();
-            m_focused = m_pss;
+        if (m_focused == m_ok) {
+            m_ok->unfocus();
+            m_focused = m_usr;
+            m_usr->focus();
+
+            return nullptr;
         }
-        else if (m_focused == m_pss) {
-            m_pss->unfocus();
-            m_focused = nullptr;
+
+        FocusWidget *next = m_focused->right();
+
+        if (!next) next = m_focused->down();
+
+        if (next) {
+            m_focused->unfocus();
+            m_focused = next;
+            m_focused->focus();
         }
 
         return nullptr;
     }
 
-    if (ch == NCKEY_UP) {
-        if (m_focused == m_usr or m_focused == nullptr) {
-            if (m_focused) m_usr->unfocus();
-            m_focused = m_pss;
-            m_pss->focus();
-        }
-        else if (m_focused == m_pss) {
-            m_pss->unfocus();
-            m_focused = m_usr;
+    if (ch == NCKEY_UP || ch == NCKEY_DOWN || ch == NCKEY_LEFT || ch == NCKEY_RIGHT) {
+        if (m_focused == nullptr) {
             m_usr->focus();
+            m_focused = m_usr;
+
+            return nullptr;
+        }
+
+        focus_t type = m_focused->type();
+
+        FocusWidget *next = nullptr;
+
+        switch (ch) {
+        case NCKEY_UP:
+            next = m_focused->up();
+            break;
+        case NCKEY_DOWN:
+            next = m_focused->down();
+            break;
+        case NCKEY_LEFT:
+            if (type == FocusType::NCPUSHBUTTON)
+                next = m_focused->left();
+            else if (m_focused->type() == FocusType::NCLINEEDIT)
+                static_cast<NCLineEdit*>(m_focused)->cleft();
+            break;
+        case NCKEY_RIGHT:
+            if (type == FocusType::NCPUSHBUTTON)
+                next = m_focused->right();
+            else if (m_focused->type() == FocusType::NCLINEEDIT)
+                static_cast<NCLineEdit*>(m_focused)->cright();
+            break;
+        default:
+            break;
+        }
+
+        if (next) {
+            m_focused->unfocus();
+            m_focused = next;
+            m_focused->focus();
         }
 
         return nullptr;
@@ -215,16 +298,6 @@ gs_info_t* ApiKeyGameState::handle_event(ncinput &ni, char32_t ch) {
 
     if (ch == NCKEY_DEL) {
         focused->del();
-        return nullptr;
-    }
-
-    if (ch == NCKEY_LEFT) {
-        focused->left();
-        return nullptr;
-    }
-
-    if (ch == NCKEY_RIGHT) {
-        focused->right();
         return nullptr;
     }
 

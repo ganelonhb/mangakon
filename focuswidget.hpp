@@ -16,8 +16,8 @@ class FocusWidget {
 public:
     explicit FocusWidget(ncpp::NotCurses *nc, ncpp::Plane *parent = nullptr, focus_t type = FocusType::UNKNOWN)
     : m_nc{nc}
-    , m_type{type}
     , m_ownsParent{!static_cast<bool>(parent)}
+    , m_type{type}
     {
         m_up = m_down = m_left = m_right = nullptr;
         m_parent = m_ownsParent ? m_nc->get_stdplane() : parent;
@@ -39,7 +39,13 @@ public:
     virtual void setUp(FocusWidget *up) { m_up = up; }
     virtual void setDown(FocusWidget *down) { m_down = down; }
     virtual void setLeft(FocusWidget *left) { m_left = left; }
-    virtual void setRight(FocusWidget *right) { m_up = right; }
+    virtual void setRight(FocusWidget *right) { m_right = right; }
+
+    virtual FocusWidget * up() const { return m_up; }
+    virtual FocusWidget * down() const { return m_down; }
+    virtual FocusWidget * left() const { return m_left; }
+    virtual FocusWidget * right() const { return m_right; }
+
 
 protected:
     ncpp::NotCurses *m_nc;

@@ -32,6 +32,8 @@ private:
 
     NCLineEdit *m_usr;
     NCLineEdit *m_pss;
+    NCLineEdit *m_key;
+    NCLineEdit *m_sct;
 
     NCPushButton *m_ok;
     NCPushButton *m_skip;

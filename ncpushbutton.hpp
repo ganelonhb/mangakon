@@ -15,13 +15,13 @@ class NCPushButton : public FocusWidget {
 public:
   explicit NCPushButton(ncpp::NotCurses *nc, ncpp::Plane *parent = nullptr, std::wstring text = L"PushButton", uint32_t y = 0, uint32_t x = 0, uint32_t h = 1, std::mutex *mut = nullptr)
         : FocusWidget{nc, parent, FocusType::NCPUSHBUTTON}
+        , clicked{mut}
+        , pressed{mut}
+        , released{mut}
         , m_text{text}
         , m_y{y}
         , m_x{x}
         , m_h{h + 2}
-        , clicked{mut}
-        , pressed{mut}
-        , released{mut}
         , m_focused{false}
         , m_pressing{false}
     {

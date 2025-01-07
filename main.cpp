@@ -53,6 +53,7 @@ int main() {
             ncmtx.unlock();
             break;
         }
+
 		gs->update();
         nc.render();
         ncmtx.unlock();
@@ -70,9 +71,8 @@ int main() {
     if (mouse_supported)
         nc.mouse_disable();
 
-    ncmtx.lock();
     delete gs;
     int EXIT_CODE = nc.stop() ? 0 : -1;
-    ncmtx.unlock();
+
 	return EXIT_CODE;
 }

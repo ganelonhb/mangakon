@@ -22,17 +22,17 @@ class NCLineEdit : public FocusWidget {
 public:
     explicit NCLineEdit(ncpp::NotCurses *nc, ncpp::Plane *parent = nullptr, uint32_t y = 0, uint32_t x = 0, uint32_t h = 1, uint32_t w = 10, bool isDefault = false, std::wstring title = L"", std::mutex *mut = nullptr, bool secure = false, wchar_t secure_char = L'*')
     : FocusWidget{nc, parent, FocusType::NCLINEEDIT}
+    , clicked{mut}
+    , activated{mut}
     , m_y{y}
     , m_x{x}
     , m_h{h}
     , m_w{w}
+    , m_title{title}
     , m_cursor_pos{0}
     , m_scroll_offset{0}
     , m_focused{isDefault}
     , m_frame{0u}
-    , clicked{mut}
-    , activated{mut}
-    , m_title{title}
     , m_secure{secure}
     , m_secure_char{secure_char}
     {
@@ -263,7 +263,7 @@ public:
         }
     }
 
-    void left() {
+    void cleft() {
         if (m_cursor_pos > 0) {
             --m_cursor_pos;
             int char_width = wcwidth(m_text[m_cursor_pos]);
@@ -275,7 +275,7 @@ public:
         }
     }
 
-    void right() {
+    void cright() {
         if (m_cursor_pos < m_text.size()) {
             int char_width = wcwidth(m_text[m_cursor_pos]);
             if (char_width < 0) char_width = 1;
