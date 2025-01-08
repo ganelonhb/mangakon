@@ -9,6 +9,7 @@
 #include "apikeygamestate.h"
 #include "ioctl.hpp"
 #include "utils.hpp"
+#include "securestorepass.hpp"
 
 #define FRAME_TARGET 60.
 
@@ -24,6 +25,7 @@ int main() {
 	if (!setlocale(LC_ALL, ""))
 		return 1;
 
+    // Define Instance of notcurses.
 	notcurses_options ncopts{};
     ncopts.flags = NCOPTION_INHIBIT_SETLOCALE | NCOPTION_SUPPRESS_BANNERS  | NCOPTION_NO_ALTERNATE_SCREEN;
     ncpp::NotCurses nc(ncopts);
@@ -37,7 +39,11 @@ int main() {
         mouse_supported = false;
     }
 
-    // IO loop
+    // Load apikey for user.
+    SecureStorePass user_profile;
+
+
+    // Define IO loop, open in new thread.
 	GameState *gs = new ApiKeyGameState(&nc, nullptr, &ncmtx);
     IOCtl ioctl(&nc, &ncmtx, gs);
     std::thread listen(&IOCtl::loop, &ioctl);

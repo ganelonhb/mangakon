@@ -5,40 +5,65 @@
 #define pass (void)(0)
 
 #include <iostream> // use sparsely
-#include <sstream>
-#include <regex>
+#include <fstream>
 #include <string>
+#include <functional>
+
+#include <openssl/sha.h>
 
 #include <termios.h>
 #include <fcntl.h>
 
 namespace util {
+    namespace hash {
+        inline size_t hash_file_contents(const std::string &filePath) {
+            std::ifstream file(filePath, std::ios::binary);
+
+            if (!file)
+                throw std::runtime_error("Failed to open file: " + filePath);
+
+            std::string contents((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+
+            std::hash<std::string> hasher;
+
+            return hasher(contents);
+        }
+    }
+
     namespace platform {
         constexpr uint16_t PLATFORM_LINUX = 0;
         constexpr uint16_t PLATFORM_WINDOWS = 1;
         constexpr uint16_t PLATFORM_MACOS = 2;
         constexpr uint16_t PLATFORM_UNIX = 3;
+        constexpr uint16_t PLATFORM_BSD = 4;
         constexpr uint16_t PLATFORM_UNKNOWN = 65535;
 
         constexpr uint16_t get_platform() {
-            #if defined(__linux__)
+            #if defined(__linux__) or defined(__gnu_linux__)
                 return PLATFORM_LINUX;
-            #elif defined(_WIN32)
+            #elif defined(_WIN32) or defined(_WIN64) or defined(CYGWIN) or defined(_WINNT)
                 return PLATFORM_WINDOWS;
-            #elif defined(__APPLE__)
+            #elif defined(__APPLE__) or defined(__MACH__) or defined(__DARWIN__)
                 return PLATFORM_MACOS;
+            #elif defined(__FreeBSD__) or defined(__NetBSD__) or defined(__OpenBSD__) or defined(__DragonFly__) or defined(__MirBSD__)
+                return PLATFORM_BSD;
             #elif defind(__unix__)
                 return PLATFORM_UNIX;
             #else
                 return PLATFORM_UNKNOWN;
             #endif
         }
+
+        constexpr uint16_t PLATFORM = get_platform();
+        constexpr bool UNIX_LIKE = PLATFORM == 0 or PLATFORM == 2 or PLATFORM == 3 or PLATFORM == 4;
+        constexpr bool NT_LIKE = PLATFORM == 1;
+        constexpr bool OSX_LIKE = PLATFORM == 2;
     }
 
     namespace dirs {
         inline std::string get_home() {
             using namespace util::platform;
-            if constexpr(get_platform() == PLATFORM_LINUX || get_platform() == PLATFORM_UNIX || get_platform() == PLATFORM_MACOS) {
+            if constexpr(get_platform() == PLATFORM_LINUX or get_platform() == PLATFORM_UNIX or get_platform() == PLATFORM_MACOS) {
                 return std::string(std::getenv("HOME"));
             }
             else if constexpr(get_platform() == PLATFORM_WINDOWS) {

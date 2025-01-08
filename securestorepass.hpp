@@ -15,11 +15,16 @@
  * otherwise, we just initialize as usual. Everything should happen in the constructor.
  */
 
+#include <fstream>
 #include <filesystem>
 
 #include <tomlplusplus/toml.hpp>
 
 #include "utils.hpp"
+
+#if defined(_WIN32) or defined(_WIN64) or defined(CYGWIN) or defined(_WINNT)
+#include <windows.h>
+#endif
 
 class SecureStorePass {
 public:
@@ -29,33 +34,121 @@ public:
 
     inline bool generate() {
         // TODO: Make cross platform
-        std::string path = util::dirs::get_home() + "/.config";
+        namespace fs = std::filesystem;
 
-        if (!std::filesystem::exists(path))
-            std::filesystem::create_directory(path);
-        else if (!std::filesystem::is_directory(path))
+        fs::path base_path = fs::path(util::dirs::get_home());
+        fs::path user_store = base_path;
+        fs::path shadow_store = base_path;
+
+        if constexpr(util::platform::UNIX_LIKE) {
+            user_store /= fs::path(".config") / fs::path("mangakon") / fs::path("userstore");
+            shadow_store /= fs::path(".config") / fs::path("mangakon") / fs::path(".shadow");
+
+        }
+        else if constexpr(util::platform::NT_LIKE) {
+            user_store /= fs::path("Mangakon") / fs::path("userstore");
+            shadow_store /= fs::path("Mangakon") / fs::path(".shadow");
+        }
+
+        if (!fs::exists(user_store))
+            fs::create_directories(user_store);
+
+        if (!fs::exists(shadow_store)) {
+            fs::create_directories(shadow_store);
+
+            #if defined(_WIN32) or defined(_WIN64) or defined(CYGWIN) or defined(_WINNT) // {
+                SetFileAttributes(shadow_store.c_str(), FILE_ATTRIBUTE_HIDDEN);
+            #endif // }
+        }
+
+        fs::path user_file = user_store / "user.toml";
+        toml::table user_toml;
+
+        try {
+            user_toml = toml::parse_file(user_file.string());
+        }
+        catch (toml::v3::ex::parse_error &e) {
             return false;
+        }
+
+        if (user_toml.contains("user")) {
+            m_user = user_toml["user"].value<std::string>().value();
+        }
+        else {
+            return false;
+        }
+
+        if (user_toml.contains("password")) {
+            m_password = user_toml["password"].value<std::string>().value();
+        }
+        else {
+            return false;
+        }
+
+        if (user_toml.contains("apikey")) {
+            m_apikey = user_toml["apikey"].value<std::string>().value();
+        }
+        else {
+            return false;
+        }
+
+        if (user_toml.contains("secret")) {
+            m_secret = user_toml["secret"].value<std::string>().value();
+        }
+        else {
+            return false;
+        }
+
+        if (user_toml.contains("encrypt")) {
+            m_encrypt = user_toml["encrypt"].value<bool>().value();
+        }
+        else {
+            m_encrypt = true;
+        }
+
+        // Check if user file already exists. get the hash for shadow.
+        if (!fs::exists(user_file)) {
+            std::ofstream user(user_file);
+            user.close();
+            return false;
+        }
+
+        size_t hash = -1;
+        std::string str_hash;
+        hash = util::hash::hash_file_contents((user_file.string()));
+        str_hash = std::to_string(hash);
+
+        fs::path shadow_file = shadow_store / str_hash;
+
+        // create the shadow file if it doesn't already exist.
+        // TODO: do this after the TOML has been read.
+        if (!fs::exists(shadow_file)) {
+            std::ofstream shadow(shadow_file);
+            shadow.close();
+        }
 
         return true;
     }
 
-    std::wstring user() const { return m_user; }
-    std::wstring password() const { return m_password; }
-    std::wstring apikey() const { return m_apikey; }
-    std::wstirng secret() const { return m_secret; }
+    std::string user() const { return m_user; }
+    std::string password() const { return m_password; }
+    std::string apikey() const { return m_apikey; }
+    std::string secret() const { return m_secret; }
 
-    bool block_encrypt() const { return m_block_encrypt; }
+    bool encrypt() const { return m_encrypt; }
 
-    std::wstring get_json() const { return L""; }
+    std::wstring get_json() const {
+        return L""; // TODO: Fixme
+    }
 
 private:
 
-    std::wstring m_user;
-    std::wstring m_password;
-    std::wstring m_apikey;
-    std::wstring m_secret;
+    std::string m_user;
+    std::string m_password;
+    std::string m_apikey;
+    std::string m_secret;
 
-    bool m_block_encrypt;
-}
+    bool m_encrypt;
+};
 
 #endif
