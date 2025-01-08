@@ -7,11 +7,49 @@
 #include <iostream> // use sparsely
 #include <sstream>
 #include <regex>
+#include <string>
 
 #include <termios.h>
 #include <fcntl.h>
 
 namespace util {
+    namespace platform {
+        constexpr uint16_t PLATFORM_LINUX = 0;
+        constexpr uint16_t PLATFORM_WINDOWS = 1;
+        constexpr uint16_t PLATFORM_MACOS = 2;
+        constexpr uint16_t PLATFORM_UNIX = 3;
+        constexpr uint16_t PLATFORM_UNKNOWN = 65535;
+
+        constexpr uint16_t get_platform() {
+            #if defined(__linux__)
+                return PLATFORM_LINUX;
+            #elif defined(_WIN32)
+                return PLATFORM_WINDOWS;
+            #elif defined(__APPLE__)
+                return PLATFORM_MACOS;
+            #elif defind(__unix__)
+                return PLATFORM_UNIX;
+            #else
+                return PLATFORM_UNKNOWN;
+            #endif
+        }
+    }
+
+    namespace dirs {
+        inline std::string get_home() {
+            using namespace util::platform;
+            if constexpr(get_platform() == PLATFORM_LINUX || get_platform() == PLATFORM_UNIX || get_platform() == PLATFORM_MACOS) {
+                return std::string(std::getenv("HOME"));
+            }
+            else if constexpr(get_platform() == PLATFORM_WINDOWS) {
+                return std::string(std::getenv("APPDATA"));
+            }
+            else {
+                throw std::runtime_error("Unknown or unsupported platform.");
+            }
+        }
+    }
+
     namespace compile_time_id {
         constexpr size_t cstrlen(const char *str) {
             const char *start = str;
