@@ -2,17 +2,14 @@
 #define UTILS_HPP
 
 #define forever while(true)
-#define pass (void)(0)
 
 #include <iostream> // use sparsely
 #include <fstream>
 #include <string>
 #include <functional>
 
-#include <openssl/sha.h>
-
-#include <termios.h>
-#include <fcntl.h>
+#include <openssl/evp.h>
+#include <openssl/rand.h>
 
 namespace util {
     namespace hash {
@@ -27,6 +24,75 @@ namespace util {
             std::hash<std::string> hasher;
 
             return hasher(contents);
+        }
+
+        inline std::vector<unsigned char> generate_random_bytes(int numBytes) {
+            std::vector<unsigned char> buffer(numBytes);
+
+            if (!RAND_bytes(buffer.data(), numBytes)) {
+                throw std::runtime_error("Error generating random bytes.");
+            }
+
+            return buffer;
+        }
+
+        inline std::vector<unsigned char> encrypt_string(const std::string &plaintext, const std::vector<unsigned char> &key, const std::vector<unsigned char> &iv) {
+            EVP_CIPHER_CTX* ctx = EVP_CIPHER_CTX_new();
+            if (!ctx) throw std::runtime_error("Failed to create EVP_CIPHER_CTX");
+
+            if (EVP_EncryptInit_ex(ctx, EVP_aes_256_cbc(), nullptr, key.data(), iv.data()) != 1) {
+                EVP_CIPHER_CTX_free(ctx);
+                throw std::runtime_error("EVP_EncryptInit_ex failed");
+            }
+
+            std::vector<unsigned char> ciphertext(plaintext.size() + EVP_CIPHER_block_size(EVP_aes_256_cbc()));
+            int len = 0, ciphertext_len = 0;
+
+            if (EVP_EncryptUpdate(ctx, ciphertext.data(), &len,
+                                reinterpret_cast<const unsigned char*>(plaintext.data()), plaintext.size()) != 1) {
+                EVP_CIPHER_CTX_free(ctx);
+                throw std::runtime_error("EVP_EncryptUpdate failed");
+            }
+            ciphertext_len = len;
+
+            if (EVP_EncryptFinal_ex(ctx, ciphertext.data() + len, &len) != 1) {
+                EVP_CIPHER_CTX_free(ctx);
+                throw std::runtime_error("EVP_EncryptFinal_ex failed");
+            }
+            ciphertext_len += len;
+
+            ciphertext.resize(ciphertext_len);
+            EVP_CIPHER_CTX_free(ctx);
+            return ciphertext;
+        }
+
+        inline std::string decrypt_string(const std::vector<unsigned char> &ciphertext, const std::vector<unsigned char> &key, const std::vector<unsigned char> &iv) {
+            EVP_CIPHER_CTX* ctx = EVP_CIPHER_CTX_new();
+            if (!ctx) throw std::runtime_error("Failed to create EVP_CIPHER_CTX");
+
+            if (EVP_DecryptInit_ex(ctx, EVP_aes_256_cbc(), nullptr, key.data(), iv.data()) != 1) {
+                EVP_CIPHER_CTX_free(ctx);
+                throw std::runtime_error("EVP_DecryptInit_ex failed");
+            }
+
+            std::vector<unsigned char> plaintext(ciphertext.size());
+            int len = 0, plaintext_len = 0;
+
+            if (EVP_DecryptUpdate(ctx, plaintext.data(), &len, ciphertext.data(), ciphertext.size()) != 1) {
+                EVP_CIPHER_CTX_free(ctx);
+                throw std::runtime_error("EVP_DecryptUpdate failed");
+            }
+            plaintext_len = len;
+
+            if (EVP_DecryptFinal_ex(ctx, plaintext.data() + len, &len) != 1) {
+                EVP_CIPHER_CTX_free(ctx);
+                throw std::runtime_error("EVP_DecryptFinal_ex failed");
+            }
+            plaintext_len += len;
+
+            plaintext.resize(plaintext_len);
+            EVP_CIPHER_CTX_free(ctx);
+            return std::string(plaintext.begin(), plaintext.end());
         }
     }
 

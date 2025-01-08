@@ -121,10 +121,37 @@ public:
 
         size_t hash = -1;
         std::string str_hash;
-        hash = util::hash::hash_file_contents((user_file.string()));
+        hash = util::hash::hash_file_contents(user_file.string());
         str_hash = std::to_string(hash);
 
+
+
         fs::path shadow_file = shadow_store / str_hash;
+
+        if (m_encrypt and !fs::exists(shadow_file)) {
+            std::vector<unsigned char> passkey = util::hash::generate_random_bytes(32);
+            std::vector<unsigned char> passiv = util::hash::generate_random_bytes(16);
+
+            std::vector<unsigned char> sctkey = util::hash::generate_random_bytes(32);
+            std::vector<unsigned char> sctiv = util::hash::generate_random_bytes(16);
+
+            std::vector<unsigned char> passcrypt = util::hash::encrypt_string(m_password, passkey, passiv);
+            std::vector<unsigned char> sctcrypt = util::hash::encrypt_string(m_secret, sctkey, sctiv);
+
+            std::ofstream user_file_out(user_file, std::ios::out | std::ios::trunc);
+
+            std::string enc = m_encrypt ? "" : "\nencrypt = false";
+
+            user_file_out << "user=" << m_user << "\npassword=" << std::string(passcrypt.begin(), passcrypt.end()) << "\napikey=" << m_apikey << "\nsecret=" << std::string(sctcrypt.begin(), sctcrypt.end()) << enc;
+
+            user_file_out.close();
+
+            std::ofstream hash_file_out(shadow_file, std::ios::out | std::ios::trunc);
+
+            hash_file_out << std::string(passkey.begin(), passkey.end()) << '\n' << std::string(passiv.begin(), passiv.end()) << '\n' << std::string(sctkey.begin(), sctkey.end()) << '\n' << std::string(sctiv.begin(), sctiv.end());
+
+            hash_file_out.close();
+        }
 
         // create the shadow file if it doesn't already exist.
         // TODO: do this after the TOML has been read.
