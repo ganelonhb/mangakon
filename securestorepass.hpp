@@ -33,6 +33,12 @@ public:
     }
 
     inline bool generate() {
+        m_user.clear();
+        m_password.clear();
+        m_apikey.clear();
+        m_secret.clear();
+        m_encrypt = true;
+
         // TODO: Make cross platform
         namespace fs = std::filesystem;
 
@@ -62,6 +68,13 @@ public:
         }
 
         fs::path user_file = user_store / "user.toml";
+        // Check if user file already exists. get the hash for shadow.
+        if (!fs::exists(user_file)) {
+            std::ofstream user(user_file);
+            user.close();
+            return false;
+        }
+
         toml::table user_toml;
 
         try {
@@ -106,13 +119,6 @@ public:
             m_encrypt = true;
         }
 
-        // Check if user file already exists. get the hash for shadow.
-        if (!fs::exists(user_file)) {
-            std::ofstream user(user_file);
-            user.close();
-            return false;
-        }
-
         size_t hash = -1;
         std::string str_hash;
         hash = util::hash::hash_file_contents((user_file.string()));
@@ -139,6 +145,10 @@ public:
 
     std::wstring get_json() const {
         return L""; // TODO: Fixme
+    }
+
+    bool valid() const {
+        return !m_user.empty() and !m_password.empty() and !m_apikey.empty() and !m_secret.empty();
     }
 
 private:
