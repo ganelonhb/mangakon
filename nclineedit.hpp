@@ -295,8 +295,12 @@ public:
         }
     }
 
-    std::wstring text()  const{
+    std::wstring text()  const {
         return m_text;
+    }
+
+    void set_text(std::wstring text) {
+        m_text = text;
     }
 
     size_t cursor_pos() const {

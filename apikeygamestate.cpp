@@ -1,11 +1,13 @@
 #include "apikeygamestate.h"
 #include "nclineedit.hpp"
+#include "utils.hpp"
 
 constexpr int MENU_Y = 22;
 constexpr int MENU_X = 90;
 
-ApiKeyGameState::ApiKeyGameState(ncpp::NotCurses *nc, ncpp::Plane *parent, std::mutex *mtx)
+ApiKeyGameState::ApiKeyGameState(ncpp::NotCurses *nc, ncpp::Plane *parent, std::mutex *mtx, SecureStorePass *init)
     : GameState{nc, parent, mtx, GameStateType::APIKEYGAMESTATE}
+    , m_init{init}
 {
     m_title = new Title(m_nc, m_parent, 5);
 
@@ -42,11 +44,23 @@ ApiKeyGameState::ApiKeyGameState(ncpp::NotCurses *nc, ncpp::Plane *parent, std::
 
     m_usr = new NCLineEdit(m_nc, m_window, 3, 3, 1, 82, true, L"Username", m_mtx);
 
+    if (m_init)
+        m_usr->set_text(util::str2wstr(m_init->user()));
+
     m_pss = new NCLineEdit(m_nc, m_window, 7, 3, 1, 82, false, L"Password", m_mtx, true);
+
+    if (m_init)
+        m_pss->set_text(util::str2wstr(m_init->password()));
 
     m_key = new NCLineEdit(m_nc, m_window, 11, 3, 1, 82, false, L"API Key", m_mtx);
 
+    if (m_init)
+        m_key->set_text(util::str2wstr(m_init->apikey()));
+
     m_sct = new NCLineEdit(m_nc, m_window, 15, 3, 1, 82, false, L"Secret", m_mtx, true);
+
+    if (m_init)
+        m_sct->set_text(util::str2wstr(m_init->secret()));
 
     m_ok = new NCPushButton(m_nc, m_window, L"Ok", MENU_Y - 4, MENU_X - 7, 1, m_mtx);
     m_skip = new NCPushButton(m_nc, m_window, L"Skip", MENU_Y - 4, MENU_X - 17, 1, m_mtx);
@@ -161,6 +175,9 @@ gs_info_t* ApiKeyGameState::handle_event(ncinput &ni, char32_t ch) {
             m_focused = static_cast<FocusWidget*>(m_sct);
             return nullptr;
         }
+
+        // TODO: Make skip button skip the apikey login.
+        // TODO: Make ok button validate. Red popup if invalid.
 
         if (m_ok->collides_mouse(ni.y, ni.x) and !m_skip->pressing()) {
             if (ni.evtype == ncpp::EvType::Press) {

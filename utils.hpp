@@ -6,6 +6,8 @@
 #include <iostream> // use sparsely
 #include <fstream>
 #include <string>
+#include <codecvt>
+#include <locale>
 #include <functional>
 
 #include <openssl/evp.h>
@@ -14,6 +16,11 @@
 #include <openssl/buffer.h>
 
 namespace util {
+    inline std::wstring str2wstr(const std::string &str) {
+        std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
+        return converter.from_bytes(str);
+    }
+
     namespace hash {
         inline size_t hash_file_contents(const std::string &filePath) {
             std::ifstream file(filePath, std::ios::binary);

@@ -44,7 +44,7 @@ int main() {
 
 
     // Define IO loop, open in new thread.
-	GameState *gs = new ApiKeyGameState(&nc, nullptr, &ncmtx);
+	GameState *gs = new ApiKeyGameState(&nc, nullptr, &ncmtx, &user_profile);
     IOCtl ioctl(&nc, &ncmtx, gs);
     std::thread listen(&IOCtl::loop, &ioctl);
 

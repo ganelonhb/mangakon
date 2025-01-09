@@ -10,6 +10,7 @@
 #include "title.h"
 #include "nclineedit.hpp"
 #include "ncpushbutton.hpp"
+#include "securestorepass.hpp"
 
 namespace GameStateType {
     constexpr gamestate_t APIKEYGAMESTATE = util::compile_time_id::get_id("ApiKeyGameState");
@@ -17,7 +18,7 @@ namespace GameStateType {
 
 class ApiKeyGameState : public GameState {
 public:
-    explicit ApiKeyGameState(ncpp::NotCurses *nc, ncpp::Plane *parent = nullptr, std::mutex *mtx = nullptr);
+    explicit ApiKeyGameState(ncpp::NotCurses *nc, ncpp::Plane *parent = nullptr, std::mutex *mtx = nullptr, SecureStorePass *init = nullptr);
     ~ApiKeyGameState() override;
 
     void update() override;
@@ -39,6 +40,8 @@ private:
     NCPushButton *m_skip;
 
     FocusWidget *m_focused;
+
+    SecureStorePass *m_init;
 };
 
 #endif

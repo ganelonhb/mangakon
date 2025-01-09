@@ -145,7 +145,7 @@ public:
             m_secretiv = sctiv;
 
             std::string sctkeystr = util::hash::base64_encode(sctkey);
-            std::string sctivstr = util::hash::base64_encode(passiv);
+            std::string sctivstr = util::hash::base64_encode(sctiv);
 
             std::vector<unsigned char> passcrypt = util::hash::encrypt_string(m_password, passkey, passiv);
 
@@ -164,6 +164,10 @@ public:
             user_file_out << "user = \"" << m_user << "\"\npassword = \"" << passcryptstr << "\"\napikey = \"" << m_apikey << "\"\nsecret = \"" << sctcryptstr << '\"' << enc;
 
             user_file_out.close();
+
+            hash = util::hash::hash_file_contents(user_file.string());
+            str_hash = std::to_string(hash);
+            shadow_file = shadow_store / str_hash;
 
             std::ofstream hash_file_out(shadow_file, std::ios::out | std::ios::trunc);
 
