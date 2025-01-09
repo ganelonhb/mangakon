@@ -10,6 +10,8 @@
 
 #include <openssl/evp.h>
 #include <openssl/rand.h>
+#include <openssl/bio.h>
+#include <openssl/buffer.h>
 
 namespace util {
     namespace hash {
@@ -93,6 +95,47 @@ namespace util {
             plaintext.resize(plaintext_len);
             EVP_CIPHER_CTX_free(ctx);
             return std::string(plaintext.begin(), plaintext.end());
+        }
+
+        inline std::string base64_encode(const std::vector<unsigned char> &data) {
+            BIO *bio = BIO_new(BIO_s_mem());
+
+            BIO *b64 = BIO_new(BIO_f_base64());
+
+            BIO_set_flags(b64, BIO_FLAGS_BASE64_NO_NL);
+
+            BIO_push(b64, bio);
+
+            BIO_write(b64, data.data(), data.size());
+            BIO_flush(b64);
+
+            BUF_MEM *buffer;
+            BIO_get_mem_ptr(b64, &buffer);
+
+            std::string encoded(buffer->data, buffer->length);
+            BIO_free_all(b64);
+            return encoded;
+        }
+
+        inline std::vector<unsigned char> base64_decode(const std::string &encoded) {
+            BIO *bio = BIO_new_mem_buf(encoded.data(), encoded.size());
+            BIO *b64 = BIO_new(BIO_f_base64());
+
+            BIO_set_flags(b64, BIO_FLAGS_BASE64_NO_NL);
+            BIO_push(b64, bio);
+
+            std::vector<unsigned char> decoded(encoded.size());
+
+            int decoded_len = BIO_read(b64, decoded.data(), decoded.size());
+
+            if (decoded_len < 0) {
+                BIO_free_all(b64);
+                throw std::runtime_error("Failed to decode base64.");
+            }
+
+            decoded.resize(decoded_len);
+            BIO_free_all(b64);
+            return decoded;
         }
     }
 

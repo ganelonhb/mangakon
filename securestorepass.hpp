@@ -127,46 +127,102 @@ public:
 
 
         fs::path shadow_file = shadow_store / str_hash;
-
+        // TODO: save shadow file to the correct updated hash.
         if (m_encrypt and !fs::exists(shadow_file)) {
             std::vector<unsigned char> passkey = util::hash::generate_random_bytes(32);
             std::vector<unsigned char> passiv = util::hash::generate_random_bytes(16);
 
+            m_passkey = passkey;
+            m_passiv = passiv;
+
+            std::string passkeystr = util::hash::base64_encode(passkey);
+            std::string passivstr = util::hash::base64_encode(passiv);
+
             std::vector<unsigned char> sctkey = util::hash::generate_random_bytes(32);
             std::vector<unsigned char> sctiv = util::hash::generate_random_bytes(16);
 
+            m_secretkey = sctkey;
+            m_secretiv = sctiv;
+
+            std::string sctkeystr = util::hash::base64_encode(sctkey);
+            std::string sctivstr = util::hash::base64_encode(passiv);
+
             std::vector<unsigned char> passcrypt = util::hash::encrypt_string(m_password, passkey, passiv);
+
+            m_password = std::string(passcrypt.begin(), passcrypt.end());
+
+            std::string passcryptstr = util::hash::base64_encode(passcrypt);
             std::vector<unsigned char> sctcrypt = util::hash::encrypt_string(m_secret, sctkey, sctiv);
+
+            m_secret = std::string(sctcrypt.begin(), sctcrypt.end());
+
+            std::string sctcryptstr = util::hash::base64_encode(sctcrypt);
 
             std::ofstream user_file_out(user_file, std::ios::out | std::ios::trunc);
 
             std::string enc = m_encrypt ? "" : "\nencrypt = false";
-
-            user_file_out << "user=" << m_user << "\npassword=" << std::string(passcrypt.begin(), passcrypt.end()) << "\napikey=" << m_apikey << "\nsecret=" << std::string(sctcrypt.begin(), sctcrypt.end()) << enc;
+            user_file_out << "user = \"" << m_user << "\"\npassword = \"" << passcryptstr << "\"\napikey = \"" << m_apikey << "\"\nsecret = \"" << sctcryptstr << '\"' << enc;
 
             user_file_out.close();
 
             std::ofstream hash_file_out(shadow_file, std::ios::out | std::ios::trunc);
 
-            hash_file_out << std::string(passkey.begin(), passkey.end()) << '\n' << std::string(passiv.begin(), passiv.end()) << '\n' << std::string(sctkey.begin(), sctkey.end()) << '\n' << std::string(sctiv.begin(), sctiv.end());
+            hash_file_out << passkeystr << '\n' << passivstr << '\n' << sctkeystr << '\n' << sctivstr;
 
             hash_file_out.close();
         }
+        else if (m_encrypt and fs::exists(shadow_file)) {
+            std::vector<unsigned char> passdecrypt = util::hash::base64_decode(m_password);
+            std::vector<unsigned char> sctdecrypt = util::hash::base64_decode(m_secret);
 
-        // create the shadow file if it doesn't already exist.
-        // TODO: do this after the TOML has been read.
-        if (!fs::exists(shadow_file)) {
-            std::ofstream shadow(shadow_file);
-            shadow.close();
+            m_password = std::string(passdecrypt.begin(), passdecrypt.end());
+            m_secret = std::string(sctdecrypt.begin(), sctdecrypt.end());
+
+            std::ifstream file(shadow_file);
+
+            std::string line;
+
+            // Passkey
+            std::getline(file, line);
+            m_passkey = util::hash::base64_decode(line);
+
+            // Passiv
+            std::getline(file, line);
+            m_passiv = util::hash::base64_decode(line);
+
+            // Secretkey
+            std::getline(file, line);
+            m_secretkey = util::hash::base64_decode(line);
+
+
+            // Secretiv
+            std::getline(file, line);
+            m_secretiv = util::hash::base64_decode(line);
         }
 
         return true;
     }
 
     std::string user() const { return m_user; }
-    std::string password() const { return m_password; }
+    std::string password() const {
+
+        if (m_encrypt) {
+            std::vector<unsigned char> vec(m_password.begin(), m_password.end());
+            return util::hash::decrypt_string(vec, m_passkey, m_passiv);
+        }
+
+        return m_password;
+
+    }
     std::string apikey() const { return m_apikey; }
-    std::string secret() const { return m_secret; }
+    std::string secret() const {
+        if (m_encrypt) {
+            std::vector<unsigned char> vec(m_secret.begin(), m_secret.end());
+            return util::hash::decrypt_string(vec, m_secretkey, m_secretiv);
+        }
+
+        return m_secret;
+    }
 
     bool encrypt() const { return m_encrypt; }
 
@@ -184,6 +240,12 @@ private:
     std::string m_password;
     std::string m_apikey;
     std::string m_secret;
+
+    std::vector<unsigned char> m_passkey;
+    std::vector<unsigned char> m_passiv;
+
+    std::vector<unsigned char> m_secretkey;
+    std::vector<unsigned char> m_secretiv;
 
     bool m_encrypt;
 };
