@@ -20,6 +20,7 @@ int main() {
 	const std::chrono::milliseconds frameTarget(static_cast<int>(1000.0/FRAME_TARGET));
 
     // clear the screen with ANSI magic
+
     util::magic::cls();
 
 	if (!setlocale(LC_ALL, ""))

@@ -11,6 +11,7 @@ ApiKeyGameState::ApiKeyGameState(ncpp::NotCurses *nc, ncpp::Plane *parent, std::
 {
     m_title = new Title(m_nc, m_parent, 5);
 
+
     unsigned FG = util::colors::defaults::WINDOW_BG;
     unsigned BG = util::colors::defaults::SELECTED;
 
