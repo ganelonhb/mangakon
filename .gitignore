@@ -33,6 +33,7 @@
 
 # Mangakon Executable
 ./mangakon
+./mangakon.debug
 
 # dev_dir
 ./devdir/

@@ -134,8 +134,10 @@ gs_info_t* ApiKeyGameState::handle_event(ncinput &ni, char32_t ch) {
         if (focused) focused->unfocus();
         m_focused = nullptr;
 
+        // TODO: Calculate offsets for each cursor click (easy mode, just count how many away)
         if (m_usr->collides_mouse(ni.y, ni.x)) {
             m_usr->focus();
+            m_usr->cursor_click(ni.x, 16);
             m_pss->unfocus();
             m_key->unfocus();
             m_sct->unfocus();
@@ -148,6 +150,7 @@ gs_info_t* ApiKeyGameState::handle_event(ncinput &ni, char32_t ch) {
         if (m_pss->collides_mouse(ni.y, ni.x)) {
             m_usr->unfocus();
             m_pss->focus();
+            m_pss->cursor_click(ni.x,16);
             m_key->unfocus();
             m_sct->unfocus();
             m_skip->unfocus();
@@ -159,6 +162,7 @@ gs_info_t* ApiKeyGameState::handle_event(ncinput &ni, char32_t ch) {
             m_usr->unfocus();
             m_pss->unfocus();
             m_key->focus();
+            m_key->cursor_click(ni.x,16);
             m_sct->unfocus();
             m_ok->unfocus();
             m_skip->unfocus();
@@ -171,6 +175,7 @@ gs_info_t* ApiKeyGameState::handle_event(ncinput &ni, char32_t ch) {
             m_pss->unfocus();
             m_key->unfocus();
             m_sct->focus();
+            m_sct->cursor_click(ni.x,16);
             m_ok->unfocus();
             m_skip->unfocus();
             m_focused = static_cast<FocusWidget*>(m_sct);

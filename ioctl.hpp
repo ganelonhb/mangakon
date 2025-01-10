@@ -7,8 +7,8 @@
 #include <ncpp/NotCurses.hh>
 #include <ncpp/Plane.hh>
 
+#include "maingamestate.h"
 #include "apikeygamestate.h"
-#include "gamestate.hpp"
 #include "utils.hpp"
 #include "signal.hpp"
 
@@ -61,6 +61,9 @@ public:
 
                 if (state == GameStateType::APIKEYGAMESTATE) [[unlikely]] {
                     // switch to ApiKey menu (no args)
+                }
+                else if (state == GameStateType::MAINGAMESTATE) {
+                    // switch to MainGameState (no args)
                 }
 
                 delete newState;

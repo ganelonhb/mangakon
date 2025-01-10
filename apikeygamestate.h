@@ -22,7 +22,7 @@ public:
     ~ApiKeyGameState() override;
 
     void update() override;
-    gs_info_t* handle_event(ncinput &ni, char32_t ch) override; // TODO: fixme
+    gs_info_t* handle_event(ncinput &ni, char32_t ch) override;
 
     bool block_fortype() override;
 

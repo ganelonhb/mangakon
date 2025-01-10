@@ -195,9 +195,28 @@ public:
         ++m_frame;
     }
 
+    void cursor_click(unsigned mouse_x, int offset = 0) {
+        unsigned local_x = mouse_x - offset;
+        if (local_x > m_text.size()) {
+            m_cursor_pos = m_text.size();
+        }
+        else if (local_x > 2 and local_x <= m_w - 1) {
+            m_cursor_pos = local_x - 1;
+        }
+        else if (local_x > m_w - 1) {
+            m_cursor_pos = m_w - 2;
+        }
+        else {
+            m_cursor_pos = 0;
+        }
+
+    }
+
     void handle_click(unsigned mouse_y, unsigned mouse_x) override {
         if (collides_mouse(mouse_y, mouse_x))
         {
+
+
             m_focused = true; // TODO: Delete me.
             emit clicked();
         }

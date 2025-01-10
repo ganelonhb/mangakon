@@ -6,6 +6,7 @@
 
 #include <ncpp/NotCurses.hh>
 
+#include "maingamestate.h"
 #include "apikeygamestate.h"
 #include "ioctl.hpp"
 #include "utils.hpp"
@@ -41,13 +42,15 @@ int main() {
     }
 
     // Load apikey for user.
-    SecureStorePass user_profile;
+    SecureStorePass *user_profile = new SecureStorePass();
+
+	GameState *gs = user_profile->valid() ?
+          static_cast<GameState*>(new MainGameState(&nc, nullptr, &ncmtx, user_profile))
+        : static_cast<GameState*>(new ApiKeyGameState(&nc, nullptr, &ncmtx, user_profile));
 
 
-    // Define IO loop, open in new thread.
-	GameState *gs = new ApiKeyGameState(&nc, nullptr, &ncmtx, &user_profile);
-    IOCtl ioctl(&nc, &ncmtx, gs);
-    std::thread listen(&IOCtl::loop, &ioctl);
+    IOCtl *ioctl = new IOCtl(&nc, &ncmtx, gs);
+    std::thread listen(&IOCtl::loop, ioctl);
 
     // main loop
 	forever
@@ -56,7 +59,7 @@ int main() {
 
         ncmtx.lock();
 
-        if (ioctl.gameover()) {
+        if (ioctl->gameover()) {
             ncmtx.unlock();
             break;
         }
@@ -79,6 +82,8 @@ int main() {
         nc.mouse_disable();
 
     delete gs;
+    delete ioctl;
+    delete user_profile;
     int EXIT_CODE = nc.stop() ? 0 : -1;
 
 	return EXIT_CODE;

@@ -28,8 +28,9 @@
 
 class SecureStorePass {
 public:
-    explicit SecureStorePass() {
-        generate();
+    explicit SecureStorePass()
+    {
+        m_valid = generate();
     }
 
     inline bool generate() {
@@ -37,6 +38,11 @@ public:
         m_password.clear();
         m_apikey.clear();
         m_secret.clear();
+        m_passkey.clear();
+        m_passiv.clear();
+        m_secretkey.clear();
+        m_secretiv.clear();
+
         m_encrypt = true;
 
         // TODO: Make cross platform
@@ -203,12 +209,13 @@ public:
             std::getline(file, line);
             m_secretiv = util::hash::base64_decode(line);
         }
-
         return true;
     }
 
     std::string user() const { return m_user; }
     std::string password() const {
+        if (!m_valid)
+            return "";
 
         if (m_encrypt) {
             std::vector<unsigned char> vec(m_password.begin(), m_password.end());
@@ -220,6 +227,9 @@ public:
     }
     std::string apikey() const { return m_apikey; }
     std::string secret() const {
+        if (!m_valid)
+            return "";
+
         if (m_encrypt) {
             std::vector<unsigned char> vec(m_secret.begin(), m_secret.end());
             return util::hash::decrypt_string(vec, m_secretkey, m_secretiv);
@@ -235,7 +245,7 @@ public:
     }
 
     bool valid() const {
-        return !m_user.empty() and !m_password.empty() and !m_apikey.empty() and !m_secret.empty();
+        return m_valid;
     }
 
 private:
@@ -252,6 +262,7 @@ private:
     std::vector<unsigned char> m_secretiv;
 
     bool m_encrypt;
+    bool m_valid;
 };
 
 #endif

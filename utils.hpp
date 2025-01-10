@@ -9,7 +9,6 @@
 #include <codecvt>
 #include <locale>
 #include <functional>
-#include <regex>
 #include <unistd.h>
 #include <termios.h>
 
