@@ -8,7 +8,7 @@
 #include <ncpp/NotCurses.hh>
 #include <ncpp/Plane.hh>
 
-using gamestate_t = uint32_t;
+using gamestate_t = uint64_t;
 
 namespace GameStateType {
     constexpr gamestate_t UNKNOWN = -1;

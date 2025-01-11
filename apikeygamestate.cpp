@@ -222,6 +222,10 @@ gs_info_t* ApiKeyGameState::handle_event(ncinput &ni, char32_t ch) {
                 m_focused = m_skip;
                 m_skip->handle_release(ni.y, ni.x);
                 m_skip->set_pressing(false);
+
+                gs_info_t *state = new gs_info_t{ .state=GameStateType::MAINGAMESTATE };
+
+                return state;
             }
             return nullptr;
         }

@@ -4,7 +4,7 @@
 #include <ncpp/NotCurses.hh>
 #include <ncpp/Plane.hh>
 
-using focus_t = uint32_t;
+using focus_t = uint64_t;
 
 namespace FocusType {
     constexpr focus_t UNKNOWN = -1;

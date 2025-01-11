@@ -7,6 +7,7 @@
 
 #include "utils.hpp"
 #include "gamestate.hpp"
+#include "maingamestate.h"
 #include "title.h"
 #include "nclineedit.hpp"
 #include "ncpushbutton.hpp"

@@ -11,14 +11,16 @@
 #include "apikeygamestate.h"
 #include "utils.hpp"
 #include "signal.hpp"
+#include "securestorepass.hpp"
 
 class IOCtl {
 public:
-    explicit IOCtl(ncpp::NotCurses *nc, std::mutex *mtx, GameState *gs)
+    explicit IOCtl(ncpp::NotCurses *nc, std::mutex *mtx, GameState **gs, SecureStorePass *user)
     : m_nc{nc}
     , m_mtx{mtx}
     , m_gameover{false}
     , m_statechange{nullptr}
+    , m_user{user}
     , m_gs{gs}
     {}
 
@@ -41,7 +43,7 @@ public:
             ch = m_nc->get(true, &ni);
             m_mtx->lock();
 
-            if (ch == 'q' and !m_gs->block_fortype()) {
+            if (ch == 'q' and !(*m_gs)->block_fortype()) {
                 m_gameover = true;
                 m_mtx->unlock();
                 return;
@@ -53,7 +55,7 @@ public:
                 continue;
             }
 
-            gs_info_t *newState = m_gs->handle_event(ni, ch);
+            gs_info_t *newState = (*m_gs)->handle_event(ni, ch);
 
             if (newState) {
                 // handle transition to new state
@@ -63,7 +65,9 @@ public:
                     // switch to ApiKey menu (no args)
                 }
                 else if (state == GameStateType::MAINGAMESTATE) {
-                    // switch to MainGameState (no args)
+                    delete *m_gs;
+
+                    *m_gs = new MainGameState(m_nc, nullptr, m_mtx, m_user);
                 }
 
                 delete newState;
@@ -83,8 +87,9 @@ private:
 
     std::atomic<bool> m_gameover;
     gs_info_t *m_statechange;
+    SecureStorePass *m_user;
 
-    GameState *m_gs;
+    GameState **m_gs;
 };
 
 #endif

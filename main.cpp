@@ -49,7 +49,7 @@ int main() {
         : static_cast<GameState*>(new ApiKeyGameState(&nc, nullptr, &ncmtx, user_profile));
 
 
-    IOCtl *ioctl = new IOCtl(&nc, &ncmtx, gs);
+    IOCtl *ioctl = new IOCtl(&nc, &ncmtx, &gs, user_profile);
     std::thread listen(&IOCtl::loop, ioctl);
 
     // main loop
