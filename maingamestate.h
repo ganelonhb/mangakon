@@ -7,6 +7,7 @@
 #include "utils.hpp"
 #include "gamestate.hpp"
 #include "securestorepass.hpp"
+#include "nctabbar.hpp"
 
 namespace GameStateType {
     constexpr gamestate_t MAINGAMESTATE = util::compile_time_id::get_id("MainGameState");
@@ -24,6 +25,7 @@ public:
     bool block_fortype() override;
 private:
     SecureStorePass *m_user;
+    NCTabBar *m_tabBar;
 };
 
 #endif

@@ -209,7 +209,7 @@ gs_info_t* ApiKeyGameState::handle_event(ncinput &ni, char32_t ch) {
             }
         }
 
-        if (m_skip->collides_mouse(ni.y, ni.x) and !m_ok->pressing()) {
+        if ((m_skip->collides_mouse(ni.y, ni.x) and !m_ok->pressing())) {
             if (ni.evtype == ncpp::EvType::Press) {
                 m_skip->focus();
                 m_ok->unfocus();
@@ -239,11 +239,31 @@ gs_info_t* ApiKeyGameState::handle_event(ncinput &ni, char32_t ch) {
 
         return nullptr;
     }
+    // TODO: Make this work.
+    bool isSkip = m_focused == m_skip;
+    //
+    if (isSkip and ch == NCKEY_ENTER) {
+        if (ni.evtype == ncpp::EvType::Press) {
+            m_skip->set_pressing(true);
+        }
+        else if (ni.evtype == ncpp::EvType::Release) {
+            m_skip->set_pressing(false);
+
+            gs_info_t *state = new gs_info_t{ .state=GameStateType::MAINGAMESTATE };
+
+            return state;
+        }
+        return nullptr;
+    }
 
     if (ni.evtype == ncpp::EvType::Release)
         return nullptr;
 
-    if (ch == NCKEY_TAB) {
+    if (ch == NCKEY_TAB or ch == NCKEY_ENTER) {
+
+        if (ch == NCKEY_ENTER)
+            emit focused->activated();
+
         if (m_focused == nullptr) {
             m_usr->focus();
             m_focused = m_usr;
@@ -271,7 +291,7 @@ gs_info_t* ApiKeyGameState::handle_event(ncinput &ni, char32_t ch) {
         return nullptr;
     }
 
-    if (ch == NCKEY_UP || ch == NCKEY_DOWN || ch == NCKEY_LEFT || ch == NCKEY_RIGHT) {
+    if (ch == NCKEY_UP or ch == NCKEY_DOWN or ch == NCKEY_LEFT or ch == NCKEY_RIGHT) {
         if (m_focused == nullptr) {
             m_usr->focus();
             m_focused = m_usr;
@@ -315,7 +335,7 @@ gs_info_t* ApiKeyGameState::handle_event(ncinput &ni, char32_t ch) {
         return nullptr;
     }
 
-    if (!focused || focused->type() != FocusType::NCLINEEDIT)
+    if (!focused or focused->type() != FocusType::NCLINEEDIT)
         return nullptr;
 
     if (ch == NCKEY_BACKSPACE) {
@@ -330,13 +350,11 @@ gs_info_t* ApiKeyGameState::handle_event(ncinput &ni, char32_t ch) {
 
     if (ch == NCKEY_ESC or ch == NCKEY_ENTER) {
         focused->esc();
-        if (ch == NCKEY_ENTER)
-            emit focused->activated();
         m_focused = nullptr;
         return nullptr;
     }
 
-    if (ch >= 32 && ch <= 0x10FFFF) {
+    if (ch >= 32 and ch <= 0x10FFFF) {
         focused->putch(ch);
     }
 

@@ -269,8 +269,15 @@ namespace util {
     namespace colors {
         namespace defaults {
             constexpr int SELECTED = 0xE68A00;
+            constexpr int SELECTED_UNFOCUSED = 0xE6B873;
             constexpr int WINDOW_BG = 0xFF5E00;
             constexpr int BUTTON = 0xFF7E33;
+            constexpr int BUTTON_UNFOCUSED = 0xFFBE99;
+
+            constexpr int TABBAR_BG = 0xE59866;
+            constexpr int TABBAR_BG_UNFOCUSED = 0x3E372D;
+            constexpr int TABBAR_TAB = 0xFFC09B;
+            constexpr int TABBAR_TAB_UNFOCUSED = 0xFFDFCD;
 
             constexpr int BUTTONPRESS = 0xE65400;
         }
