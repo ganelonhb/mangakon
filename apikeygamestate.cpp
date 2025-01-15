@@ -239,28 +239,27 @@ gs_info_t* ApiKeyGameState::handle_event(ncinput &ni, char32_t ch) {
 
         return nullptr;
     }
-    // TODO: Make this work.
+
     bool isSkip = m_focused == m_skip;
-    //
+    bool isOk = m_focused == m_ok;
+
     if (isSkip and ch == NCKEY_ENTER) {
-        if (ni.evtype == ncpp::EvType::Press) {
-            m_skip->set_pressing(true);
-        }
-        else if (ni.evtype == ncpp::EvType::Release) {
-            m_skip->set_pressing(false);
+        gs_info_t *state = new gs_info_t{ .state=GameStateType::MAINGAMESTATE };
 
-            gs_info_t *state = new gs_info_t{ .state=GameStateType::MAINGAMESTATE };
+        return state;
+    }
 
-            return state;
-        }
-        return nullptr;
+    // Verify apikey, then advance if valid.
+    if (isOk and ch == NCKEY_ENTER) {
+        gs_info_t *state = nullptr;
+
+        return state;
     }
 
     if (ni.evtype == ncpp::EvType::Release)
         return nullptr;
 
     if (ch == NCKEY_TAB or ch == NCKEY_ENTER) {
-
         if (ch == NCKEY_ENTER)
             emit focused->activated();
 
