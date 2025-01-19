@@ -24,11 +24,11 @@ public:
         m_parent->get_dim(&ph, &pw);
 
         m_h = ph;
-        m_w = 32;
+        m_w = 64;
         m_x = pw - m_w - 1;
         m_y = 1;
 
-        m_bgplane = new ncpp::Plane(m_parent, m_w, m_h, m_y, m_x);
+        m_bgplane = new ncpp::Plane(m_parent, m_h, m_w, m_y, m_x);
 
         m_coverPlane = new ncpp::Plane(m_bgplane, m_w / 3, m_w / 3, 1, (m_w / 2) - (m_w / 6) + 1);
         m_coverVisual = new ncpp::Visual("data/no_manga.jpg");
@@ -80,10 +80,15 @@ public:
             m_parent->get_dim(&ph, &pw);
 
             m_h = ph;
-            m_w = pw / 3;
+            m_w = 64;
             m_x = pw - m_w - 1;
             m_y = 1;
+            m_bgplane->resize(m_h, m_w);
             m_bgplane->move(m_y, m_x);
+
+            m_title->resize(1, m_w - 1);
+            m_coverVisual->blit(&m_vopts);
+            m_nc->refresh(nullptr, nullptr);
 
             return true;
         }
