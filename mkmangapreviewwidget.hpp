@@ -7,26 +7,24 @@
 #include <ncpp/Visual.hh>
 #include <ncpp/Plane.hh>
 
-#include "focuswidget.hpp"
+#include "mkwidget.hpp"
 #include "ncpushbutton.hpp"
 
-class MKMangaPreviewWidget {
+class MKMangaPreviewWidget : public MKWidget {
 public focus_widgets:
 
     NCPushButton *m_chapters;   // see chapter list. Set preferred TL Group
     NCPushButton *m_read;       // Read from first chapter or pick up from where left off
 
 public:
-    explicit MKMangaPreviewWidget(ncpp::NotCurses *nc, ncpp::Plane *parent)
-    : m_nc{nc}
-    , m_parent{parent}
-    , m_ownsParent{!static_cast<bool>(parent)}
+    explicit MKMangaPreviewWidget(ncpp::NotCurses *nc, ncpp::Plane *parent = nullptr)
+    : MKWidget{nc, parent}
     {
         unsigned ph, pw;
         m_parent->get_dim(&ph, &pw);
 
         m_h = ph;
-        m_w = pw / 3;
+        m_w = 32;
         m_x = pw - m_w - 1;
         m_y = 1;
 
@@ -50,7 +48,7 @@ public:
         m_title = new ncpp::Plane(m_bgplane, 1, m_w - 1, 0, 1);
 
     }
-    ~MKMangaPreviewWidget() {
+    ~MKMangaPreviewWidget() override {
         delete m_bgplane;
         delete m_coverPlane;
         delete m_coverVisual;
@@ -64,33 +62,38 @@ public:
     }
 
     inline void draw_content() {
+        m_title->erase();
         m_title->set_base("", NCSTYLE_BOLD, 0);
         m_title->putstr(0, (m_w / 2) - 8, m_manga_json ? L"TODO: set with manga title" : L"No Manga Selected");
         m_title->set_base("", 0, 0);
     }
 
-    void update() {
-        unsigned ph, pw;
-        m_parent->get_dim(&ph, &pw);
-
-        m_h = ph;
-        m_w = pw / 3;
-        m_x = pw - m_w - 1;
-        m_y = 1;
-
-        m_bgplane->resize(m_y, m_x);
-        m_bgplane->move(m_w, m_h);
-
+    void update() override {
         draw_box();
         draw_content();
+    }
+
+    bool handle_event(ncinput &ni, char32_t ch) override {
+
+        if (ni.id == NCKEY_RESIZE) {
+            unsigned ph, pw;
+            m_parent->get_dim(&ph, &pw);
+
+            m_h = ph;
+            m_w = pw / 3;
+            m_x = pw - m_w - 1;
+            m_y = 1;
+            m_bgplane->move(m_y, m_x);
+
+            return true;
+        }
+
+        return false;
     }
 
     // void set_manga(std::string id);
 
 private:
-    ncpp::NotCurses *m_nc;
-    ncpp::Plane *m_parent;
-
     ncpp::Plane *m_bgplane;
 
     // Cover art planes
@@ -109,8 +112,6 @@ private:
 
     unsigned m_h;
     unsigned m_w;
-
-    bool m_ownsParent;
 
     nlohmann::json *m_manga_json;
 

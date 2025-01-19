@@ -29,6 +29,13 @@ void MainGameState::update() {
 }
 
 gs_info_t *MainGameState::handle_event(ncinput &ni, char32_t ch) {
+    if (ni.id == NCKEY_RESIZE) {
+
+        m_prev->handle_event(ni, ch);
+
+        return nullptr;
+    }
+
     return {}; //TODO: populate
 }
 
