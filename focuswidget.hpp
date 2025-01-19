@@ -4,6 +4,8 @@
 #include <ncpp/NotCurses.hh>
 #include <ncpp/Plane.hh>
 
+#define focus_widgets
+
 using focus_t = uint64_t;
 
 namespace FocusType {

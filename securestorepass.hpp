@@ -18,7 +18,7 @@
 #include <fstream>
 #include <filesystem>
 
-#include <tomlplusplus/toml.hpp>
+#include <toml++/toml.hpp>
 
 #include "utils.hpp"
 

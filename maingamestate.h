@@ -8,6 +8,7 @@
 #include "gamestate.hpp"
 #include "securestorepass.hpp"
 #include "nctabbar.hpp"
+#include "mkmangapreviewwidget.hpp"
 
 namespace GameStateType {
     constexpr gamestate_t MAINGAMESTATE = util::compile_time_id::get_id("MainGameState");
@@ -26,6 +27,8 @@ public:
 private:
     SecureStorePass *m_user;
     NCTabBar *m_tabBar;
+
+    MKMangaPreviewWidget *m_prev;
 };
 
 #endif

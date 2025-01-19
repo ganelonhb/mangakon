@@ -276,7 +276,7 @@ namespace util {
 
             constexpr int TABBAR_BG = 0xE59866;
             constexpr int TABBAR_BG_UNFOCUSED = 0x3E372D;
-            constexpr int TABBAR_TAB = 0xFFC09B;
+            constexpr int TABBAR_TAB = 0xCB741D;
             constexpr int TABBAR_TAB_UNFOCUSED = 0xFFDFCD;
 
             constexpr int BUTTONPRESS = 0xE65400;

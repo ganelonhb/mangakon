@@ -34,14 +34,16 @@ public:
 
         m_tabBar->set_bg_rgb(util::colors::defaults::BUTTON);
         m_tabBar->set_bg_alpha(0xFF);
-        m_tabBar->putwch(0,0,m_scroll_offset > 0 ? L'J' : L' ');
-        m_tabBar->putwch(0, m_internal_width + 1, get_tab_width() >= m_internal_width ? L'L' : L' ');
+        m_tabBar->putwch(0,0,m_scroll_offset > 0 ? L'<' : L' ');
+        m_tabBar->putwch(0,1,L'J');
+        m_tabBar->putwch(0, m_internal_width + 1, get_tab_width() >= m_internal_width ? L'>' : L' ');
+        m_tabBar->putwch(0, m_internal_width, L'L');
         m_tabBar->set_bg_default();
         m_tabBar->set_bg_alpha(0x00);
 
         m_tabBar->set_bg_rgb(util::colors::defaults::TABBAR_BG);
         m_tabBar->set_bg_alpha(0xFF);
-        for (size_t i = 1; i < m_internal_width + 1; ++i)
+        for (size_t i = 2; i < m_internal_width; ++i)
             m_tabBar->putc(0,i, ' ');
         m_tabBar->set_bg_default();
         m_tabBar->set_bg_alpha(0x00);
@@ -49,16 +51,20 @@ public:
     }
 
     inline void draw_text() {
-        m_tabBar->cursor_move(0,1);
+        m_tabBar->cursor_move(0,2);
         m_tabBar->set_bg_alpha(0xFF);
+
+        size_t total_width = 0;
 
         for (size_t i = 0; i < m_tabs.size(); ++i) {
             const std::wstring tab = m_tabs[i];
 
             std::wstring display_tab = L"|" + tab + L"|";
             size_t tab_width = display_tab.length();
+            total_width += tab_width;
 
-            if (tab_width >m_internal_width) break;
+            if (tab_width > m_internal_width || total_width > m_internal_width - 2)
+                break;
 
             m_tabBar->set_bg_rgb(i == m_selected_tab ? util::colors::defaults::SELECTED : util::colors::defaults::TABBAR_TAB);
 

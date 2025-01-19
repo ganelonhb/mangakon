@@ -128,7 +128,7 @@ public:
         m_focused = false;
     }
 
-    void setFocus(bool focus) {
+    void setFocus(bool focus) override {
         m_focused = focus;
     }
 
