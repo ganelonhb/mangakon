@@ -8,7 +8,10 @@
 #include <ncpp/Plane.hh>
 
 #include "mkwidget.hpp"
+#include "ncpp/CellStyle.hh"
 #include "ncpushbutton.hpp"
+#include "notcurses/notcurses.h"
+#include "utils.hpp"
 
 class MKMangaPreviewWidget : public MKWidget {
 public focus_widgets:
@@ -22,6 +25,9 @@ public:
     {
         unsigned ph, pw;
         m_parent->get_dim(&ph, &pw);
+
+        m_ph = ph;
+        m_pw = pw;
 
         m_h = ph;
         m_w = 64;
@@ -52,6 +58,7 @@ public:
         delete m_bgplane;
         delete m_coverPlane;
         delete m_coverVisual;
+        delete m_title;
     }
 
     inline void draw_box() {
@@ -63,22 +70,16 @@ public:
 
     inline void draw_content() {
         m_title->erase();
-        m_title->set_base("", NCSTYLE_BOLD, 0);
+        m_title->styles_set(ncpp::CellStyle::Bold);
         m_title->putstr(0, (m_w / 2) - 8, m_manga_json ? L"TODO: set with manga title" : L"No Manga Selected");
-        m_title->set_base("", 0, 0);
+        m_title->styles_set(ncpp::CellStyle::None);
     }
 
     void update() override {
-        draw_box();
-        draw_content();
-    }
 
-    bool handle_event(ncinput &ni, char32_t ch) override {
-
-        if (ni.id == NCKEY_RESIZE) {
-            unsigned ph, pw;
-            m_parent->get_dim(&ph, &pw);
-
+        unsigned ph, pw;
+        m_parent->get_dim(&ph, &pw);
+        if (ph != m_ph or pw != m_pw) {
             m_h = ph;
             m_w = 64;
             m_x = pw - m_w - 1;
@@ -87,11 +88,19 @@ public:
             m_bgplane->move(m_y, m_x);
 
             m_title->resize(1, m_w - 1);
+            m_coverPlane->erase();
             m_coverVisual->blit(&m_vopts);
             m_nc->refresh(nullptr, nullptr);
 
-            return true;
+            m_ph = ph;
+            m_pw = pw;
         }
+
+        draw_box();
+        draw_content();
+    }
+
+    bool handle_event(ncinput &ni, char32_t ch) override {
 
         return false;
     }
@@ -114,6 +123,9 @@ private:
 
     unsigned m_y;
     unsigned m_x;
+
+    unsigned m_ph;
+    unsigned m_pw;
 
     unsigned m_h;
     unsigned m_w;
