@@ -2,6 +2,7 @@
 #define MKMANGAPREVIEWWIDGET_HPP
 
 #include <nlohmann/json.hpp>
+#include <cpp-httplib/httplib.h>
 
 #include <ncpp/NotCurses.hh>
 #include <ncpp/Visual.hh>
@@ -9,16 +10,9 @@
 
 #include "mkwidget.hpp"
 #include "ncpp/CellStyle.hh"
-#include "ncpushbutton.hpp"
 #include "notcurses/notcurses.h"
-#include "utils.hpp"
 
 class MKMangaPreviewWidget : public MKWidget {
-public focus_widgets:
-
-    NCPushButton *m_chapters;   // see chapter list. Set preferred TL Group
-    NCPushButton *m_read;       // Read from first chapter or pick up from where left off
-
 public:
     explicit MKMangaPreviewWidget(ncpp::NotCurses *nc, ncpp::Plane *parent = nullptr)
     : MKWidget{nc, parent}

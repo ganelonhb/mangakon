@@ -30,6 +30,9 @@ public:
 private:
     Title *m_title;
 
+    uint32_t m_ph;
+    uint32_t m_pw;
+
     ncpp::Plane *m_window;
 
     NCLineEdit *m_usr;

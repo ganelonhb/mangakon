@@ -22,7 +22,8 @@ public:
         , m_selected_tab{0}
     {
         m_tabBar = std::make_unique<ncpp::Plane>(m_parent, 1, m_parent->get_dim_x(), 0, 0);
-        m_internal_width = m_parent->get_dim_x() - 2;
+        m_pw = m_parent->get_dim_x();
+        m_internal_width = m_pw - 2;
     }
 
     ~NCTabBar() override {
@@ -75,9 +76,14 @@ public:
     }
 
     void update() override {
-
-        m_internal_width = m_parent->get_dim_x() - 2;
-        m_tabBar->resize(1, m_parent->get_dim_x());
+        unsigned pw;
+        pw = m_parent->get_dim_x();
+        if (pw != m_pw) {
+            m_internal_width = m_parent->get_dim_x() - 2;
+            m_tabBar->resize(1, m_parent->get_dim_x());
+            m_nc->refresh(nullptr, nullptr);
+            m_pw = pw;
+        }
 
         draw_bar();
         draw_text();
@@ -110,6 +116,8 @@ private:
     int m_scroll_offset;
     bool m_focused;
     size_t m_selected_tab;
+
+    uint32_t m_pw;
 
     std::vector<std::wstring> m_tabs;
 

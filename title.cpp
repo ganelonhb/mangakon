@@ -8,7 +8,7 @@ Title::Title(ncpp::NotCurses *nc, ncpp::Plane *parent, uint32_t y, uint32_t x)
 {
     m_parent = m_ownsParent ? m_nc->get_stdplane() : parent;
 
-    m_parent->get_dim(m_parenth, m_parentw);
+    m_parent->get_dim(&m_parenth, &m_parentw);
 
     uint32_t true_y = y;
     uint32_t true_x = x;
@@ -66,25 +66,28 @@ void Title::update() {
     uint32_t y, x;
     m_parent->get_dim(&y, &x);
 
-    m_parenth = y;
-    m_parentw = x;
+    if (y != m_parenth or x != m_parentw) {
 
-    uint32_t true_y = m_ypos;
-    uint32_t true_x = m_xpos;
+        uint32_t true_y = m_ypos;
+        uint32_t true_x = m_xpos;
 
-    if (true_y == static_cast<uint32_t>(-1))
-        true_y = (m_parenth / 2) - (MANGAKON_TITLE_ROWS / 2);
-    else if (true_y == static_cast<uint32_t>(-2))
-        true_y = 0;
-    else if (true_y == static_cast<uint32_t>(-3))
-        true_y = m_parenth - MANGAKON_TITLE_ROWS;
+        if (true_y == static_cast<uint32_t>(-1))
+            true_y = (y / 2) - (MANGAKON_TITLE_ROWS / 2);
+        else if (true_y == static_cast<uint32_t>(-2))
+            true_y = 0;
+        else if (true_y == static_cast<uint32_t>(-3))
+            true_y = y - MANGAKON_TITLE_ROWS;
 
-    if (true_x == static_cast<uint32_t>(-1)) [[likely]]
-        true_x = (m_parentw / 2) - (MANGAKON_TITLE_COLS / 2);
-    else if (true_x == static_cast<uint32_t>(-2))
-        true_x = 0;
-    else if (true_x == static_cast<uint32_t>(-3))
-        true_x = m_parentw - MANGAKON_TITLE_COLS;
+        if (true_x == static_cast<uint32_t>(-1)) [[likely]]
+            true_x = (x / 2) - (MANGAKON_TITLE_COLS / 2);
+        else if (true_x == static_cast<uint32_t>(-2))
+            true_x = 0;
+        else if (true_x == static_cast<uint32_t>(-3))
+            true_x = x - MANGAKON_TITLE_COLS;
 
-    m_title->move(true_y, true_x);
+        m_title->move(true_y, true_x);
+
+        m_parenth = y;
+        m_parentw = x;
+    }
 }
