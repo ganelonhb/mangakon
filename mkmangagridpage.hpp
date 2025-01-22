@@ -8,6 +8,7 @@
 #include <ncpp/Plane.hh>
 
 #include "mkwidget.hpp"
+#include "ncvscrollbar.hpp"
 
 class MKMangaGridPage : public MKWidget {
 public:
@@ -19,8 +20,17 @@ public:
 
         m_ph = ph;
         m_pw = pw;
+        m_scrollbar = new NCVScrollBar(nc, m_parent, nullptr, m_parent->get_dim_y() - 1);
+    }
 
+    ~MKMangaGridPage() override {
+        delete m_scrollbar;
 
+        MKWidget::~MKWidget();
+    }
+
+    void update() override {
+        m_scrollbar->update();
     }
 
 
@@ -38,6 +48,7 @@ private:
     nlohmann::json *m_json;
 
     uint64_t m_page;
+    NCVScrollBar *m_scrollbar;
 };
 
 #endif

@@ -1,4 +1,5 @@
 #include "maingamestate.h"
+#include "mkmangagridpage.hpp"
 
 MainGameState::MainGameState(ncpp::NotCurses *nc, ncpp::Plane *parent, std::mutex *mtx, SecureStorePass *user)
     : GameState{nc, parent, mtx, GameStateType::MAINGAMESTATE}
@@ -12,12 +13,17 @@ MainGameState::MainGameState(ncpp::NotCurses *nc, ncpp::Plane *parent, std::mute
     m_tabBar->add_tab(L"Settings");
 
     m_prev = new MKMangaPreviewWidget(nc, m_parent);
+    m_grid = new ncpp::Plane(m_parent, m_parent->get_dim_y(), m_parent->get_dim_x() - 65, 1, 0);
+
+    m_gridPage = new MKMangaGridPage(nc, m_grid);
 }
 
 MainGameState::~MainGameState() {
 
     delete m_tabBar;
     delete m_prev;
+    delete m_gridPage;
+    delete m_grid;
 
     GameState::~GameState();
 }
@@ -26,6 +32,7 @@ void MainGameState::update() {
     //TODO: populate
     m_tabBar->update();
     m_prev->update();
+    m_gridPage->update();
 }
 
 gs_info_t *MainGameState::handle_event(ncinput &ni, char32_t ch) {
