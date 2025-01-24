@@ -32,9 +32,9 @@
 *.app
 
 # Mangakon Executable
-./mangakon
-./mangakon.native
-./mangakon.debug
+mangakon
+mangakon.debug
+mangakon.native
 
 # dev_dir
 ./devdir/
