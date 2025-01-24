@@ -12,11 +12,11 @@ ApiKeyGameState::ApiKeyGameState(ncpp::NotCurses *nc, ncpp::Plane *parent, std::
     m_title = new Title(m_nc, m_parent, 5);
 
 
-    unsigned FG = util::colors::defaults::WINDOW_BG;
-    unsigned BG = util::colors::defaults::SELECTED;
+    uint32_t FG = util::colors::defaults::WINDOW_BG;
+    uint32_t BG = util::colors::defaults::SELECTED;
 
-    unsigned y;
-    unsigned x;
+    uint32_t y;
+    uint32_t x;
     m_parent->get_dim(&y, &x);
     m_ph = y;
     m_pw = x;
@@ -119,7 +119,7 @@ void ApiKeyGameState::update() {
     if (m_ok) m_ok->update();
     if (m_skip) m_skip->update();
 
-    unsigned y, x;
+    uint32_t y, x;
     m_parent->get_dim(&y, &x);
     if (y != m_ph or x != m_pw) {
         m_window->move((y / 2) - (MENU_Y / 2),  (x / 2) - (MENU_X / 2));

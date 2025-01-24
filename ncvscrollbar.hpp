@@ -95,7 +95,7 @@ public:
     void set_scroll(uint32_t offset) { m_scroll_offset = offset; }
     void set_rows(uint32_t rows) { m_numrows = rows; }
 
-    inline bool collides_mouse(unsigned mouse_y, unsigned mouse_x) {
+    inline bool collides_mouse(uint32_t mouse_y, uint32_t mouse_x) {
         int p_y = m_parent->get_y();
         int p_x = m_parent->get_x();
 

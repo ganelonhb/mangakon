@@ -17,7 +17,7 @@ public:
     explicit MKMangaPreviewWidget(ncpp::NotCurses *nc, ncpp::Plane *parent = nullptr)
     : MKWidget{nc, parent}
     {
-        unsigned ph, pw;
+        uint32_t ph, pw;
         m_parent->get_dim(&ph, &pw);
 
         m_ph = ph;
@@ -57,7 +57,7 @@ public:
 
     inline void draw_box() {
         m_bgplane->erase();
-        for (unsigned y = 0; y < m_h; ++y)
+        for (uint32_t y = 0; y < m_h; ++y)
             m_bgplane->putwch(y, 0, L'║');
 
     }
@@ -71,7 +71,7 @@ public:
 
     void update() override {
 
-        unsigned ph, pw;
+        uint32_t ph, pw;
         m_parent->get_dim(&ph, &pw);
         if (ph != m_ph or pw != m_pw) {
             m_h = ph;
@@ -115,14 +115,14 @@ private:
 
     ncpp::Plane *m_publication;
 
-    unsigned m_y;
-    unsigned m_x;
+    uint32_t m_y;
+    uint32_t m_x;
 
-    unsigned m_ph;
-    unsigned m_pw;
+    uint32_t m_ph;
+    uint32_t m_pw;
 
-    unsigned m_h;
-    unsigned m_w;
+    uint32_t m_h;
+    uint32_t m_w;
 
     nlohmann::json *m_manga_json;
 

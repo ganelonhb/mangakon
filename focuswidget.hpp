@@ -30,7 +30,7 @@ public:
     }
 
     virtual void update() {};
-    virtual void handle_click(unsigned y, unsigned x) {}
+    virtual void handle_click(uint32_t y, uint32_t x) {}
 
     virtual bool focused() const { return false; }
     virtual void focus() {}

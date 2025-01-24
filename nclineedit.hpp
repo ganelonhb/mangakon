@@ -195,8 +195,8 @@ public:
         ++m_frame;
     }
 
-    void cursor_click(unsigned mouse_x, int offset = 0) {
-        unsigned local_x = mouse_x - offset;
+    void cursor_click(uint32_t mouse_x, int offset = 0) {
+        uint32_t local_x = mouse_x - offset;
         if (local_x > m_text.size()) {
             m_cursor_pos = m_text.size();
         }
@@ -212,7 +212,7 @@ public:
 
     }
 
-    void handle_click(unsigned mouse_y, unsigned mouse_x) override {
+    void handle_click(uint32_t mouse_y, uint32_t mouse_x) override {
         if (collides_mouse(mouse_y, mouse_x))
         {
 
@@ -330,7 +330,7 @@ public:
         return m_scroll_offset;
     }
 
-    inline bool collides_mouse(unsigned mouse_y, unsigned mouse_x) {
+    inline bool collides_mouse(uint32_t mouse_y, uint32_t mouse_x) {
         int p_y = m_parent->get_y();
         int p_x = m_parent->get_x();
 

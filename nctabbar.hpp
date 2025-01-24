@@ -76,7 +76,7 @@ public:
     }
 
     void update() override {
-        unsigned pw;
+        uint32_t pw;
         pw = m_parent->get_dim_x();
         if (pw != m_pw) {
             m_internal_width = m_parent->get_dim_x() - 2;
