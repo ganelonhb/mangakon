@@ -3,7 +3,7 @@
 
 #include <cstdint>
 #include <ncpp/NotCurses.hh>
-#include <ncpp/NotCurses.hh>
+#include <ncpp/Plane.hh>
 #include <mutex>
 
 #include "focuswidget.hpp"
