@@ -10,6 +10,8 @@
 #include "mkwidget.hpp"
 #include "ncvscrollbar.hpp"
 
+#include "mkmangacoverwidget.hpp"
+
 class MKMangaGridPage : public MKWidget {
 public:
     explicit MKMangaGridPage(ncpp::NotCurses *nc, ncpp::Plane *parent = nullptr)
@@ -20,17 +22,23 @@ public:
 
         m_ph = ph;
         m_pw = pw;
+        m_parent->printf("PH: %d, PW: %d", ph, pw);
         m_scrollbar = new NCVScrollBar(nc, m_parent, nullptr, m_parent->get_dim_y() - 1);
+
+        temp = new MKMangaCoverWidget(nc, m_parent, nullptr, 0, 0, 5, 5, new ncpp::Visual("data/no_manga.jpg"));
+        temp->set_title("Test Manga Title");
     }
 
     ~MKMangaGridPage() override {
         delete m_scrollbar;
+        delete temp;
 
         MKWidget::~MKWidget();
     }
 
     void update() override {
         m_scrollbar->update();
+        temp->update();
     }
 
 
@@ -49,6 +57,8 @@ private:
 
     uint64_t m_page;
     NCVScrollBar *m_scrollbar;
+
+    MKMangaCoverWidget *temp;
 };
 
 #endif
