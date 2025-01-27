@@ -2,6 +2,7 @@
 #define MKMANGACOVERWIDGET_HPP
 
 #include <mutex>
+
 #include <ncpp/NotCurses.hh>
 #include <ncpp/Visual.hh>
 #include <ncpp/Plane.hh>
@@ -27,9 +28,9 @@ public:
     , m_w{w}
     , m_focused{false}
     {
-        m_cover = new ncpp::Plane(m_parent, y, x, h, w);
+        m_cover = new ncpp::Plane(m_parent, h, w, y, x);
 
-        m_coverPlane = new ncpp::Plane(m_cover, 0, 0, m_h - 4, m_w);
+        m_coverPlane = new ncpp::Plane(m_cover, m_h - 4, m_w, 0, 0);
         m_vopts = {
             .n = m_coverPlane->to_ncplane(),
             .scaling = NCSCALE_SCALE_HIRES,
@@ -42,7 +43,7 @@ public:
         if (m_coverVisual)
             m_coverVisual->blit(&m_vopts);
 
-        m_title = new ncpp::Plane(m_cover, m_h - 5, 0, 4, m_w);
+        m_title = new ncpp::Plane(m_cover, 4, m_w, m_h - 5, 0);
     }
 
     ~MKMangaCoverWidget() override {
@@ -105,35 +106,101 @@ public:
             words.push_back(word);
 
         uint32_t currentRow = 0;
-        uint32_t currentCol = 0;
+        size_t i = 0;
 
-        for (size_t i = 0; i < words.size() && currentRow < rows; ++currentRow) {
-
+        while (i < words.size() && currentRow < rows) {
             std::wstring rowText;
+            uint32_t currentCol = 0;
 
-            while (i < words.size() && (currentCol + words[i].length() <= cols || rowText.empty()))
-            {
-                if (!rowText.empty())
-                    rowText += L" ";
+            while (i < words.size()) {
+                uint32_t wordWidth = 0;
+                for (wchar_t ch : words[i]) {
+                    int width = wcwidth(ch);
+                    wordWidth += (width > 0) ? width : 1;
+                }
 
-                rowText += words[i];
-                currentCol = rowText.length();
-                ++i;
+                if (wordWidth > cols) {
+                    std::wstring longWord = words[i];
+                    size_t charIndex = 0;
+                    while (charIndex < longWord.size() && currentRow < rows) {
+                        uint32_t remainingCols = cols - currentCol;
+                        uint32_t segmentWidth = 0;
+                        std::wstring segment;
+
+                        while (charIndex < longWord.size() && segmentWidth < remainingCols) {
+                            wchar_t ch = longWord[charIndex];
+                            int width = wcwidth(ch);
+                            if (width < 0) width = 1;
+                            if (segmentWidth + width > remainingCols) break;
+                            segment += ch;
+                            segmentWidth += width;
+                            charIndex++;
+                        }
+
+                        rowText += segment;
+                        currentCol += segmentWidth;
+
+                        if (charIndex < longWord.size() || !rowText.empty()) {
+                            uint32_t textWidth = 0;
+                            for (wchar_t ch : rowText) {
+                                int width = wcwidth(ch);
+                                textWidth += (width > 0) ? width : 1;
+                            }
+                            uint32_t x = (cols - textWidth) / 2;
+
+                            for (wchar_t ch : rowText) {
+                                m_title->putwch(currentRow, x, ch);
+                                int width = wcwidth(ch);
+                                x += (width > 0) ? width : 1;
+                            }
+
+                            rowText.clear();
+                            currentRow++;
+                            currentCol = 0;
+
+                            if (currentRow >= rows) break;
+                        }
+                    }
+
+                    if (charIndex >= longWord.size()) i++;
+                    break;
+                }
+
+                if (currentCol + wordWidth <= cols || rowText.empty()) {
+                    if (!rowText.empty()) {
+                        rowText += L" ";
+                        currentCol += 1;
+                    }
+
+                    rowText += words[i];
+                    currentCol += wordWidth;
+                    ++i;
+                } else {
+                    break;
+                }
             }
 
-            uint32_t x = (cols - rowText.length()) / 2;
+            if (!rowText.empty()) {
+                uint32_t textWidth = 0;
+                for (wchar_t ch : rowText) {
+                    int width = wcwidth(ch);
+                    textWidth += (width > 0) ? width : 1;
+                }
+                uint32_t x = (cols - textWidth) / 2;
 
-            for (wchar_t ch : rowText)
-                m_title->putwch(currentRow, x++, ch);
+                for (wchar_t ch : rowText) {
+                    m_title->putwch(currentRow, x, ch);
+                    int width = wcwidth(ch);
+                    x += (width > 0) ? width : 1;
+                }
+                currentRow++;
+            }
 
-            currentCol = 0;
-
-            if (currentRow == rows - 1 && i < words.size()) {
-                m_title->putwch(currentRow, cols - 2, L'…');
+            if (currentRow == rows && i < words.size()) {
+                m_title->putwch(currentRow - 1, cols - 1, L'…');
                 break;
             }
         }
-
     }
 
     void handle_click(uint32_t y, uint32_t x) override {

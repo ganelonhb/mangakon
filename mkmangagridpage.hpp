@@ -12,6 +12,13 @@
 
 #include "mkmangacoverwidget.hpp"
 
+/* The MKMangaGridPage will feature a few widgets.
+ * The manga grid, the scrollbar, and the page selector.
+ * The manga grid displays four covers horizontally. It tries to resize dynamically.
+ * The scrollbar is next to the grid.
+ * The page selector displays a selection of buttons that change pages, as well as a text
+ * input that lets you put in a custom page.
+ */
 class MKMangaGridPage : public MKWidget {
 public:
     explicit MKMangaGridPage(ncpp::NotCurses *nc, ncpp::Plane *parent = nullptr)
@@ -22,11 +29,10 @@ public:
 
         m_ph = ph;
         m_pw = pw;
-        m_parent->printf("PH: %d, PW: %d", ph, pw);
-        m_scrollbar = new NCVScrollBar(nc, m_parent, nullptr, m_parent->get_dim_y() - 1);
+        m_scrollbar = new NCVScrollBar(nc, m_parent, nullptr, m_parent->get_dim_y() - 4);
 
-        temp = new MKMangaCoverWidget(nc, m_parent, nullptr, 0, 0, 5, 5, new ncpp::Visual("data/no_manga.jpg"));
-        temp->set_title("Test Manga Title");
+        temp = new MKMangaCoverWidget(nc, m_parent, nullptr, 0, 0, 32, 32, new ncpp::Visual("data/no_manga.jpg"));
+        temp->set_title(L"Manga Title Here テスト寿限無寿限無 ﷽👮🔫🐊apu uihefjjla lewlfcwaefoihjawelfkwhuoihwaeiuhwjnaelkeawhjfoiuhafjljwksef hdslahfeiAUhncoklhhwaenflicuw aehFlkcjWNASHIWLf");
     }
 
     ~MKMangaGridPage() override {
