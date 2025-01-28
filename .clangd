@@ -1,2 +1,2 @@
 CompileFlags:
-  Add: [-Inotcurses/include, -Ithirdparty]
+  Add: [-Inotcurses/include, -Ithirdparty, -std=c++23]
