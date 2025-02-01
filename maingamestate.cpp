@@ -1,15 +1,19 @@
 #include "maingamestate.h"
 #include "mkmangagridpage.hpp"
 
+#include <ncpp/Visual.hh>
+
 MainGameState::MainGameState(ncpp::NotCurses *nc, ncpp::Plane *parent, std::mutex *mtx, SecureStorePass *user)
     : GameState{nc, parent, mtx, GameStateType::MAINGAMESTATE}
     , m_user{user}
 {
     m_tabBar = new NCTabBar(m_nc, m_parent, m_mtx);
-    m_tabBar->add_tab(L"Popular");
-    m_tabBar->add_tab(L"Latest Updates");
+    m_tabBar->add_tab(L"Latest Updates"); // Latest Update
+    m_tabBar->add_tab(L"Popular"); // Latest Update + Most Follows
+    m_tabBar->add_tab(L"Highest Rated"); // Rating
+    m_tabBar->add_tab(L"Recently Added"); // Recently added.
     m_tabBar->add_tab(L"Search");
-    m_tabBar->add_tab(L"Lists");
+    m_tabBar->add_tab(L"Saved"); // Local
     m_tabBar->add_tab(L"Settings");
 
     m_prev = new MKMangaPreviewWidget(nc, m_parent);

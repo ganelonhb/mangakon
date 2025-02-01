@@ -11,7 +11,6 @@
 #include <functional>
 #include <unistd.h>
 #include <termios.h>
-#include <filesystem>
 
 #include <openssl/evp.h>
 #include <openssl/rand.h>
