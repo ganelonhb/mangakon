@@ -10,6 +10,7 @@
 #include "nctabbar.hpp"
 #include "mkmangapreviewwidget.hpp"
 #include "mkmangagridpage.hpp"
+#include "mkhttpengine.hpp"
 
 namespace GameStateType {
     constexpr gamestate_t MAINGAMESTATE = util::compile_time_id::get_id("MainGameState");
@@ -33,6 +34,8 @@ private:
 
     MKMangaPreviewWidget *m_prev;
     MKMangaGridPage *m_gridPage;
+
+    MKHTTPEngine m_http;
 };
 
 #endif

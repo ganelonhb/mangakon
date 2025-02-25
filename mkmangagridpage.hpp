@@ -1,6 +1,8 @@
 #ifndef MKMANGAGRIDPAGE_HPP
 #define MKMANGAGRIDPAGE_HPP
 
+#include <vector>
+
 #include <nlohmann/json.hpp>
 
 #include <ncpp/NotCurses.hh>
@@ -23,6 +25,8 @@ class MKMangaGridPage : public MKWidget {
 public:
     explicit MKMangaGridPage(ncpp::NotCurses *nc, ncpp::Plane *parent = nullptr)
     : MKWidget{nc, parent}
+    , m_totalManga{0}
+    , m_widgets{nullptr}
     {
         uint32_t ph, pw;
         m_parent->get_dim(&ph, &pw);
@@ -30,24 +34,56 @@ public:
         m_ph = ph;
         m_pw = pw;
         m_scrollbar = new NCVScrollBar(nc, m_parent, nullptr, m_parent->get_dim_y() - 4);
-
-        temp = new MKMangaCoverWidget(nc, m_parent, nullptr, 0, 0, 32, 32, new ncpp::Visual("data/no_manga.jpg"));
-        temp->set_title(L"Manga Title Here テスト寿限無寿限無 ﷽👮🔫🐊apu uihefjjla lewlfcwaefoihjawelfkwhuoihwaeiuhwjnaelkeawhjfoiuhafjljwksef hdslahfeiAUhncoklhhwaenflicuw aehFlkcjWNASHIWLf");
     }
 
     ~MKMangaGridPage() override {
         delete m_scrollbar;
-        delete temp;
 
         MKWidget::~MKWidget();
     }
 
     void update() override {
         m_scrollbar->update();
-        temp->update();
     }
 
+    void clearManga() {
+        if (m_widgets) {
+            for (size_t i = 0; i < m_widgets->size(); ++i) {
+                delete m_widgets->at(i);
+            }
 
+            delete m_widgets;
+            m_widgets = nullptr;
+        }
+    }
+
+    void setManga(nlohmann::json json) {
+        clearManga();
+
+        m_widgets = new std::vector<MKMangaCoverWidget *>;
+        nlohmann::json manga;
+
+        try {
+            m_totalManga = json.at("total").get<long>();
+            manga = json.at("data");
+        }
+        catch (std::out_of_range &e) {
+            m_totalManga = 0;
+            delete m_widgets;
+            m_widgets = nullptr;
+        }
+
+        for (nlohmann::json &e : manga) {
+            MKMangaCoverWidget *page(m_nc, m_parent);
+            page->set_info(e);
+            //m_widgets->push_back()
+        }
+
+    }
+
+    uint32_t getInternalHeight() const {
+        return 0;
+    }
 
 private:
     uint32_t m_y;
@@ -59,12 +95,14 @@ private:
     uint32_t m_h;
     uint32_t m_w;
 
+    uint64_t m_totalManga;
+
     nlohmann::json *m_json;
 
     uint64_t m_page;
     NCVScrollBar *m_scrollbar;
 
-    MKMangaCoverWidget *temp;
+    std::vector<MKMangaCoverWidget *> *m_widgets;
 };
 
 #endif

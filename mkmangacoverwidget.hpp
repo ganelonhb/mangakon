@@ -1,7 +1,10 @@
 #ifndef MKMANGACOVERWIDGET_HPP
 #define MKMANGACOVERWIDGET_HPP
 
+#include <sstream>
 #include <mutex>
+
+#include <nlohmann/json.hpp>
 
 #include <ncpp/NotCurses.hh>
 #include <ncpp/Visual.hh>
@@ -16,7 +19,7 @@ namespace FocusType {
 
 class MKMangaCoverWidget : public FocusWidget {
 public:
-    explicit MKMangaCoverWidget(ncpp::NotCurses *nc, ncpp::Plane *parent = nullptr, std::mutex *mut = nullptr, uint32_t y = 0, uint32_t x = 0, uint32_t h = 5, uint32_t w = 5, ncpp::Visual *vis = nullptr, const std::wstring &title=L"")
+    MKMangaCoverWidget(ncpp::NotCurses *nc, ncpp::Plane *parent = nullptr, std::mutex *mut = nullptr, uint32_t y = 0, uint32_t x = 0, uint32_t h = 5, uint32_t w = 5, ncpp::Visual *vis = nullptr, const std::wstring &title=L"")
     : FocusWidget{nc, parent, FocusType::MKMANGACOVERWIDGET}
     , m_coverVisual{vis}
     , m_titleStr{title}
@@ -27,6 +30,7 @@ public:
     , m_h{h}
     , m_w{w}
     , m_focused{false}
+    , m_ownsVis{false}
     {
         m_cover = new ncpp::Plane(m_parent, h, w, y, x);
 
@@ -45,6 +49,38 @@ public:
 
         m_title = new ncpp::Plane(m_cover, 4, m_w, m_h - 5, 0);
     }
+
+    MKMangaCoverWidget(ncpp::NotCurses *nc, const uint32_t *rgba, int rows, int channels, int cols, ncpp::Plane *parent = nullptr, std::mutex *mut = nullptr, uint32_t y = 0, uint32_t x = 0, uint32_t h = 5, uint32_t w = 5, const std::wstring &title=L"")
+        : FocusWidget{nc, parent, FocusType::MKMANGACOVERWIDGET}
+        , m_titleStr{title}
+        , m_y{y}
+        , m_x{x}
+        , m_ph{m_parent->get_dim_y()}
+        , m_pw{m_parent->get_dim_x()}
+        , m_h{h}
+        , m_w{w}
+        , m_focused{false}
+        , m_ownsVis{true}
+        {
+            m_cover = new ncpp::Plane(m_parent, h, w, y, x);
+
+            m_coverVisual = new ncpp::Visual(rgba, rows, cols * channels, cols);
+
+            m_coverPlane = new ncpp::Plane(m_cover, m_h - 4, m_w, 0, 0);
+            m_vopts = {
+                .n = m_coverPlane->to_ncplane(),
+                .scaling = NCSCALE_SCALE_HIRES,
+                .y = NCALIGN_CENTER,
+                .x = NCALIGN_CENTER,
+                .blitter = NCBLIT_PIXEL,
+                .flags = NCVISUAL_OPTION_CHILDPLANE | NCVISUAL_OPTION_HORALIGNED | NCVISUAL_OPTION_VERALIGNED
+            };
+
+            if (m_coverVisual)
+                m_coverVisual->blit(&m_vopts);
+
+            m_title = new ncpp::Plane(m_cover, 4, m_w, m_h - 5, 0);
+        }
 
     ~MKMangaCoverWidget() override {
         delete m_cover;
@@ -231,6 +267,8 @@ public:
         m_titleStr = util::str2wstr(title);
     }
 
+    void set_info(nlohmann::json j) { m_info = j; }
+
 private:
     ncpp::Plane *m_cover;
     ncpp::Plane *m_coverPlane;
@@ -251,6 +289,9 @@ private:
     uint32_t m_w;
 
     bool m_focused;
+    bool m_ownsVis;
+
+    nlohmann::json m_info;
 };
 
 #endif

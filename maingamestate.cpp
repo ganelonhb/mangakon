@@ -20,6 +20,7 @@ MainGameState::MainGameState(ncpp::NotCurses *nc, ncpp::Plane *parent, std::mute
     m_grid = new ncpp::Plane(m_parent, m_parent->get_dim_y(), m_parent->get_dim_x() - 65, 1, 0);
 
     m_gridPage = new MKMangaGridPage(nc, m_grid);
+    m_gridPage->setManga(m_http.get_latest());
 }
 
 MainGameState::~MainGameState() {
