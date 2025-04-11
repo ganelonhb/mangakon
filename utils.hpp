@@ -157,6 +157,7 @@ namespace util {
         constexpr uint16_t PLATFORM_BSD = 4;
         constexpr uint16_t PLATFORM_UNKNOWN = 65535;
 
+
         constexpr uint16_t get_platform() {
             #if defined(__linux__) or defined(__gnu_linux__)
                 return PLATFORM_LINUX;

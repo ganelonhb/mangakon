@@ -7,9 +7,7 @@
 #include "utils.hpp"
 #include "gamestate.hpp"
 #include "securestorepass.hpp"
-#include "nctabbar.hpp"
 #include "mkmangapreviewwidget.hpp"
-#include "mkmangagridpage.hpp"
 #include "mkhttpengine.hpp"
 
 namespace GameStateType {
@@ -28,12 +26,8 @@ public:
     bool block_fortype() override;
 private:
     SecureStorePass *m_user;
-    NCTabBar *m_tabBar;
-
-    ncpp::Plane *m_grid;
 
     MKMangaPreviewWidget *m_prev;
-    MKMangaGridPage *m_gridPage;
 
     MKHTTPEngine m_http;
 };
