@@ -1,90 +1,100 @@
-#define NCPP_EXCEPTIONS_PLEASE
-
-#include <thread>
-#include <chrono>
+#include <argparse/argparse.hpp>
+#include <cstdio>
+#include <cerrno>
+#include <ncpp/NotCurses.hh>
 #include <mutex>
 
-#include <ncpp/NotCurses.hh>
+#include "frametimer.h"
+#include "mousemanager.h"
 
-#include "maingamestate.h"
-#include "apikeygamestate.h"
-#include "ioctl.hpp"
-#include "utils.hpp"
-#include "securestorepass.hpp"
+// CONTANTS
+constexpr const char *  PROGRAM_NAME        = "mangakon";
+constexpr const char *  PROGRAM_VERSION     = "0.0.1";
+constexpr const char *  PROGRAM_DESC        = "read manga directly in the terminal";
 
-#define FRAME_TARGET 60.
+// CONSTINITS
+constinit double        FRAME_RATE          =  60.0;
 
-std::mutex ncmtx;
-bool mouse_supported = true;
+int main(int argc, const char **argv) {
+    std::mutex ncMutex;
 
-int main() {
-	const std::chrono::milliseconds frameTarget(static_cast<int>(1000.0/FRAME_TARGET));
+    argparse::ArgumentParser parser(
+        PROGRAM_NAME,
+        PROGRAM_VERSION,
+        argparse::default_arguments::help
+    );
 
-    // clear the screen with ANSI magic
+    parser.add_description(PROGRAM_DESC);
 
-    util::magic::cls();
+    parser.add_argument("-v", "--version")
+        .help("prints version information and exits")
+        .flag();
 
-	if (!setlocale(LC_ALL, ""))
-		return 1;
+    parser.add_argument("--framerate")
+        .help("set a target framerate")
+        .default_value(double{FRAME_RATE})
+        .store_into(FRAME_RATE);
 
-    // Define Instance of notcurses.
-	notcurses_options ncopts{};
-    ncopts.flags = NCOPTION_INHIBIT_SETLOCALE | NCOPTION_SUPPRESS_BANNERS  | NCOPTION_NO_ALTERNATE_SCREEN;
-    ncpp::NotCurses nc(ncopts);
-
-
-    // Attempt to enable mouse. If not, thats alright!
     try {
-        nc.mouse_enable(NCMICE_ALL_EVENTS);
+        parser.parse_args(argc, argv);
+    } catch (const std::exception &err) {
+        std::printf(
+            "Error: %s\n\n%s",
+                err.what(),
+                parser.help().str().c_str()
+        );
+        return EINVAL;
     }
-    catch (ncpp::call_error &e) {
-        mouse_supported = false;
+
+    if (parser["--version"] == true) {
+        std::printf("%s v%s\n", PROGRAM_NAME, PROGRAM_VERSION);
+        return EXIT_SUCCESS;
     }
 
-    // Load apikey for user.
-    SecureStorePass *user_profile = new SecureStorePass();
+    // Return to home (prep for framebuffer mode)
+    std::printf("\033[2J\033[H");
+    std::fflush(stdout);
 
-	GameState *gs = user_profile->valid() ?
-          static_cast<GameState*>(new MainGameState(&nc, nullptr, &ncmtx, user_profile))
-        : static_cast<GameState*>(new ApiKeyGameState(&nc, nullptr, &ncmtx, user_profile));
+    if (!setlocale(LC_ALL, "")) {
+        std::fprintf(stderr, "Error: Could not set the locale.\n");
+        return ENOENT;
+    }
 
+    // ┉┉┉┉┉┉┉┉┉┉┉┉┉┉┉┉┉┉┉┉┉┉┉┉┉
+    // NotCurses domain ahead...
+    // ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+    // ┃                                                                            ┃
+    // ┃  WARNING: DO NOT USE the std::printf family or std::cout from here on out. ┃
+    // ┃                                                                            ┃
+    // ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+    // 🕱 YOU HAVE BEEN WARNED 🕱
+    // ┉┉┉┉┉┉┉┉┉┉┉┉┉┉┉┉┉┉┉┉┉┉┉┉┉
 
-    IOCtl *ioctl = new IOCtl(&nc, &ncmtx, &gs, user_profile);
-    std::thread listen(&IOCtl::loop, ioctl);
+    ncpp::NotCurses nc({
+        .flags  = NCOPTION_INHIBIT_SETLOCALE
+                | NCOPTION_SUPPRESS_BANNERS
+                | NCOPTION_NO_ALTERNATE_SCREEN
+    });
 
-    // main loop
-	forever
-    {
-        std::chrono::time_point<std::chrono::high_resolution_clock> frameStart = std::chrono::high_resolution_clock::now();
+    FrameTimer timer(FRAME_RATE);
+    MouseManager *mouseManager = new MouseManager(&nc);
 
-        ncmtx.lock();
-
-        if (ioctl->gameover()) {
-            ncmtx.unlock();
-            break;
-        }
-
-		gs->update();
+    while(true) {
+        timer.clock();
+        ncMutex.lock();
+        // gamestate update
         nc.render();
-        ncmtx.unlock();
-
-        std::chrono::time_point<std::chrono::high_resolution_clock> frameEnd = std::chrono::high_resolution_clock::now();
-        std::chrono::milliseconds elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(frameEnd - frameStart);
-
-        if (elapsed < frameTarget) {
-            std::this_thread::sleep_for(frameTarget - elapsed);
-        }
+        ncMutex.unlock();
+        timer.sync();
     }
 
-    listen.join();
+    delete mouseManager;
 
-    if (mouse_supported)
-        nc.mouse_disable();
+    nc.get_stdplane()->putc('\n');
 
-    delete gs;
-    delete ioctl;
-    delete user_profile;
-    int EXIT_CODE = nc.stop() ? 0 : -1;
+    int EXIT_CODE = nc.stop()
+        ? EXIT_SUCCESS
+        : EXIT_FAILURE;
 
-	return EXIT_CODE;
+    return EXIT_CODE;
 }

@@ -1,3 +1,6 @@
 [submodule "notcurses"]
 	path = notcurses
 	url = https://github.com/dankamongmen/notcurses
+[submodule "argparse"]
+	path = argparse
+	url = https://github.com/p-ranav/argparse
