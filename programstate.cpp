@@ -1,6 +1,6 @@
-#include "gamestate.h"
+#include "programstate.h"
 
-GameState::GameState(ncpp::NotCurses *nc, ncpp::Plane *parent, std::mutex *mtx,const util::smart_colors::TerminalColors *const tc, gamestate_t type)
+ProgramState::ProgramState(ncpp::NotCurses *nc, ncpp::Plane *parent, std::mutex *mtx,const util::smart_colors::TerminalColors *const tc, programstate_t type)
     : m_nc{nc}
     , m_mtx{mtx}
     , m_ownsParent{!bool(parent)}
@@ -10,20 +10,20 @@ GameState::GameState(ncpp::NotCurses *nc, ncpp::Plane *parent, std::mutex *mtx,c
     m_parent = m_ownsParent ? m_nc->get_stdplane() : parent;
 }
 
-GameState::~GameState() {}
+ProgramState::~ProgramState() {}
 
-void GameState::update() {}
+void ProgramState::update() {}
 
-gamestate_info_t *GameState::handle_event(ncinput &ni, char32_t ch) {
+programstate_info_t *ProgramState::handle_event(ncinput &ni, char32_t ch) {
     return nullptr;
 }
 
 // Block certain signals for typing.
-bool GameState::block_fortype() {
+bool ProgramState::block_fortype() {
     return false;
 }
 
-bool GameState::maybeLock() {
+bool ProgramState::maybeLock() {
     bool mut = m_mtx != nullptr;
 
     if (mut) {
@@ -33,7 +33,7 @@ bool GameState::maybeLock() {
     return mut;
 }
 
-bool GameState::maybeUnlock() {
+bool ProgramState::maybeUnlock() {
     bool mut = m_mtx != nullptr;
 
     if (mut) {

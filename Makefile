@@ -17,7 +17,7 @@ $(REQUIRED_LIBS):
 	mkdir -p libs
 	mkdir -p notcurses/build
 	cd notcurses/build && \
-	cmake -DUSE_GPM=ON -DUSE_MULTIMEDIA=none ../ && \
+	cmake -DUSE_GPM=ON -DUSE_MULTIMEDIA=none -DUSE_PANDOC=OFF ../ && \
 	cmake --build . --config Release
 	cp notcurses/build/*.a libs/
 
