@@ -1,4 +1,0 @@
-cd notcurses
-mkdir build && cd build
-cmake -DUSE_GPM=ON -DUSE_MULTIMEDIA=oiio ../
-cmake --build . --config Release
