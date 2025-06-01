@@ -1,18 +1,18 @@
 CXXC=g++
 CC=gcc
 RSRC=resources
-C_FLAGS=-std=c23 -Wall -Werror
-
+C_FLAGS=-std=c23 -ffunction-sections -fdata-sections -Os -fomit-frame-pointer -flto=auto -fmerge-constants -fvisibility=hidden
+C_DBG=-std=c23 -g -o0 -Wall -Werror
+NATIVE=-march=native -mtune=native
 INC=-Inotcurses/include -Iargparse/include
 DBG=-std=c++2c -g -O0 -Wall -Werror
-REQUIRED_LIBS=libs/libnotcurses++.a libs/libnotcurses-core.a libs/libnotcurses.a
-PROD=-std=c++2c -O3 -ffunction-sections -fdata-sections -fomit-frame-pointer -flto=auto -Wl,--gc-sections -s -Wl,--strip-all -Wl,--strip-debug -Wl,--as-needed -fmerge-constants
-LIBS=-Llibs -Wl,-rpath,libs -l:libnotcurses++.a -l:libnotcurses.a -l:libnotcurses-core.a -Wl,-Bdynamic -lOpenImageIO_Util -lOpenImageIO -lncurses -lunistring -ldeflate -lgpm
+PROD=-std=c++2c -Os -ffunction-sections -fdata-sections -fomit-frame-pointer -flto=auto -Wl,-flto=auto -Wl,--gc-sections -s -Wl,--strip-all -Wl,--strip-debug -Wl,--as-needed -fmerge-constants -Wl,-Os -fvisibility=hidden -fvisibility-inlines-hidden
+LIBS=-Llibs -Wl,-rpath,libs -Wl,--exclude-libs=ALL -l:libnotcurses++.a -l:libnotcurses.a -l:libnotcurses-core.a -Wl,-Bdynamic -lOpenImageIO_Util -lOpenImageIO -lncurses -lunistring -ldeflate -lgpm
 OUT=mangakon
 IN=*.o *.cpp
 MAKE=make
 
-$(REQUIRED_LIBS):
+NOTCURSES:
 	rm -rf libs/* notcurses/build/
 	mkdir -p libs
 	mkdir -p notcurses/build
@@ -21,17 +21,24 @@ $(REQUIRED_LIBS):
 	cmake --build . --config Release
 	cp notcurses/build/*.a libs/
 
+rsrc-native:
+	$(CC) $(C_FLAGS) $(NATIVE) -c $(RSRC).c -o $(RSRC).o
+
+rsrc-dbg:
+	$(CC) $(C_DBG) -c $(RSRC).c -o $(RSRC).o
+
 rsrc:
 	$(CC) $(C_FLAGS) -c $(RSRC).c -o $(RSRC).o
 
-dbg: rsrc $(REQUIRED_LIBS)
+
+dbg: rsrc-dbg NOTCURSES
 	$(CXXC) $(DBG) $(INC) $(IN) $(LIBS) -o $(OUT).debug
 
-prod: rsrc $(REQUIRED_LIBS)
+prod: rsrc NOTCURSES
 	$(CXXC) $(PROD) $(INC) $(IN) $(LIBS) -o $(OUT)
 
-native: rsrc $(REQUIRED_LIBS)
-	$(CXXC) $(PROD) -march=native -mtune=native $(INC) $(IN) $(LIBS) -o $(OUT).native
+native: rsrc-native NOTCURSES
+	$(CXXC) $(PROD) $(INC) $(IN) $(LIBS) -o $(OUT).native
 
 clean:
 	rm -rf notcurses/build/
